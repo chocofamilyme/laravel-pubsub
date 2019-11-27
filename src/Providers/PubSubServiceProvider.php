@@ -40,5 +40,9 @@ class PubSubServiceProvider extends ServiceProvider
             __DIR__ . '/../config/amqp.php' => config_path('amqp.php'),
             __DIR__ . '/../config/pubsub.php' => config_path('pubsub.php'),
         ]);
+
+        // Add class and it's facade
+        $this->app->bind('AmqpExtendet', 'Chocofamilyme\LaravelPubSub\AmqpExtension\AmqpExtendet');
+        class_alias('Chocofamilyme\LaravelPubSub\AmqpExtension\AmqpExtendetFacade', 'AmqpExtendet');
     }
 }
