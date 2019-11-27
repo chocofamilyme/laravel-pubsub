@@ -43,6 +43,16 @@ class PubSubServiceProvider extends ServiceProvider
 
         // Add class and it's facade
         $this->app->bind('AmqpExtendet', 'Chocofamilyme\LaravelPubSub\AmqpExtension\AmqpExtendet');
-        class_alias('Chocofamilyme\LaravelPubSub\AmqpExtension\AmqpExtendetFacade', 'AmqpExtendet');
+        if (!class_exists('AmqpExtendet')) {
+            class_alias('Chocofamilyme\LaravelPubSub\AmqpExtension\AmqpExtendetFacade', 'AmqpExtendet');
+        }
+    }
+
+    /**
+     *
+     */
+    public function provides()
+    {
+        return ['AmqpExtendet'];
     }
 }
