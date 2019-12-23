@@ -13,7 +13,7 @@ php artisan vendor:publish --provider="Chocofamilyme\LaravelPubSub\Providers\Pub
 
 # Configuration
 ## AMQP
-AMQP configuration file is located under config/amqp.php and contains configuration for RabbitMQ.
+AMQP configuration file is located under config/queue.php and contains configuration for RabbitMQ.
 
 ## PubSub
 PubSub configuration file is located under config/pubsub.php and contains configuration for EventRouting.
@@ -49,6 +49,6 @@ Will listen to single event "gateway.user.authenticated" in default exchange and
 
 ### Wildcard event
 ```bash
-php artisan event:listen gateway.user.# --exchange=gateway --queuename=guardqueue
+php artisan event:listen gateway.user.# --exchange=gateway --queue=guardqueue
 ```
 Will listen to all "gateway.user.*" events in exchange gateway and with queue name "guardqueue"

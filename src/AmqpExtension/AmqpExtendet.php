@@ -2,41 +2,62 @@
 
 namespace Chocofamilyme\LaravelPubSub\AmqpExtension;
 
-use Bschmitt\Amqp\Publisher;
-use Bschmitt\Amqp\Request;
-use Bschmitt\Amqp\Message;
-use PhpAmqpLib\Wire\AMQPTable;
+use Chocofamilyme\LaravelPubSub\Queue\RabbitMQQueue;
+use Chocofamilyme\LaravelPubSub\Exceptions\InvalidArgumentException;
+use Illuminate\Support\Arr;
+use PhpAmqpLib\Message\AMQPMessage;
 
+/**
+ * Class AmqpExtendet
+ *
+ * @package Chocofamilyme\LaravelPubSub\AmqpExtension
+ */
 class AmqpExtendet
 {
     /**
      * @param string $routing
-     * @param mixed $message
-     * @param array $properties
-     * @param array $headers
-     * @param array $applicationHeaders
-     * @throws \Bschmitt\Amqp\Exception\Configuration
-     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     * @param mixed  $message
+     * @param array  $properties
+     * @param array  $headers
+     * @param array  $applicationHeaders
+     *
+     * @return mixed
+     * @throws InvalidArgumentException
      */
-    public function publish($routing, $message, array $properties = [], array $headers = [], array $applicationHeaders = [])
-    {
-        $properties['routing'] = $routing;
+    public function publish(
+        $routing,
+        $message,
+        array $properties = [],
+        array $headers = [],
+        array $applicationHeaders = []
+    ) {
+        /** @var RabbitMQQueue $queue */
+        $queue = app()->get('queue');
 
-        /* @var Publisher $publisher */
-        $publisher = app()->make('Bschmitt\Amqp\Publisher');
-        $publisher
-            ->mergeProperties($properties)
-            ->setup();
-
-        if (is_string($message)) {
-            $defaultHeaders = ['content_type' => 'text/plain', 'delivery_mode' => 2];
-
-            $applicationHeadersTable = new AMQPTable($applicationHeaders);
-            $message = new Message($message, array_merge($defaultHeaders, $headers));
-            $message->set('application_headers', $applicationHeadersTable);
+        if (!$queue instanceof RabbitMQQueue) {
+            throw new InvalidArgumentException('Queue worker should be instance RabbitMQQueue');
         }
 
-        $publisher->publish($routing, $message);
-        Request::shutdown($publisher->getChannel(), $publisher->getConnection());
+        /** @var AMQPMessage $message */
+        [$message, $correlationId] = $queue->createMessage($message);
+
+        foreach ($headers as $name => $value) {
+            $message->set($name, $value);
+        }
+
+        if ($applicationHeaders) {
+            $message->set('application_headers', $applicationHeaders);
+        }
+
+        $queue->getChannel()->basic_publish(
+            $message,
+            Arr::get($properties, 'exchange', ''),
+            $routing,
+            Arr::get($properties, 'mandatory', false),
+            Arr::get($properties, 'immediate', false),
+            Arr::get($properties, 'ticket', null)
+        );
+
+        return $correlationId;
     }
 }

@@ -2,14 +2,13 @@
 
 namespace Chocofamilyme\LaravelPubSub\Listeners;
 
-use App\Exceptions\Handler;
-use Chocofamilyme\LaravelPubSub\Exceptions\NoListenerException;
-use Throwable;
+use Chocofamilyme\LaravelPubSub\Exceptions\NotFoundListenerException;
 
 /**
  * This class is beeing used from EventListenCommand as Router for events
  *
  * Class EventRouter
+ *
  * @package App\Listeners
  */
 class EventRouter
@@ -25,62 +24,30 @@ class EventRouter
     }
 
     /**
-     * This method routes the events to their listeners based on event name
+     * Возвращает слушателя и его метод
+     * Отвечающие за обработку ссобщения
      *
      * @param string $eventName
-     * @param string $payload
-     * @throws NoListenerException
+     *
+     * @return array
+     * @throws NotFoundListenerException
      */
-    public function handle(string $eventName, string $payload): void
+    public function getListeners(string $eventName): array
     {
         if (!$this->checkIfEventHasListeners($eventName)) {
-            throw new NoListenerException($eventName . ' has no listeners. Please check App\Listeners\EventRouter $listen property');
+            throw new NotFoundListenerException(
+                "$eventName has no listeners. Please check App\Listeners\EventRouter \$listen property"
+            );
         }
 
-        $payload = $this->convertPayloadToArrayIfPossible($payload);
-
-        foreach ($this->listen[$eventName] as $listener) {
-            try {
-                (new $listener)->handle($payload);
-            } catch (\Exception $e) {
-                $this->logException($e);
-            }
-        }
-    }
-
-    /**
-     * Logs exception
-     *
-     * @param $exception
-     * @throws \Exception
-     */
-    private function logException(Throwable $exception)
-    {
-        $exceptionHandler = new Handler(app());
-        $exceptionHandler->report($exception);
-        echo "Error occured: " . $exception->getMessage() . PHP_EOL;
-    }
-
-    /**
-     * Converts payload to array if it is possible, otherwise let it like it was
-     *
-     * @param $payload
-     * @return mixed
-     */
-    private function convertPayloadToArrayIfPossible($payload)
-    {
-        $array = json_decode($payload, true);
-        if (is_null($array)) {
-            return $payload;
-        }
-
-        return $array;
+        return $this->listen[$eventName];
     }
 
     /**
      * Checks if event has listeners
      *
      * @param string $eventName
+     *
      * @return bool
      */
     private function checkIfEventHasListeners(string $eventName): bool

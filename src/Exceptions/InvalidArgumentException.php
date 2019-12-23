@@ -2,6 +2,6 @@
 
 namespace Chocofamilyme\LaravelPubSub\Exceptions;
 
-class NoListenerException extends \Exception
+class InvalidArgumentException extends \Exception
 {
 }
