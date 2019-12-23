@@ -8,8 +8,8 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Console\ConsumeCommand;
 class EventListenCommand extends ConsumeCommand
 {
     protected $signature = 'event:listen
-                            {connection? : The name of the queue connection to work}
                             {eventname : Event name, e.g. user.# -> listen to all events starting with user.} 
+                            {--connection=rabbitmq : The name of the queue connection to work}
                             {--queue= : The names of the queues to work}
                             {--exchange= : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]} 
                             {--exchange_type=topic : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]} 
