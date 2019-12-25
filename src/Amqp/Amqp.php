@@ -1,6 +1,6 @@
 <?php
 
-namespace Chocofamilyme\LaravelPubSub\AmqpExtension;
+namespace Chocofamilyme\LaravelPubSub\Amqp;
 
 use Chocofamilyme\LaravelPubSub\Queue\RabbitMQQueue;
 use Chocofamilyme\LaravelPubSub\Exceptions\InvalidArgumentException;
@@ -8,11 +8,11 @@ use Illuminate\Support\Arr;
 use PhpAmqpLib\Message\AMQPMessage;
 
 /**
- * Class AmqpExtendet
+ * Class Amqp
  *
- * @package Chocofamilyme\LaravelPubSub\AmqpExtension
+ * @package Chocofamilyme\LaravelPubSub\Amqp
  */
-class AmqpExtendet
+class Amqp
 {
     /**
      * @param string $routing
