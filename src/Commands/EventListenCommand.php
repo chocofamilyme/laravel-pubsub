@@ -21,6 +21,7 @@ class EventListenCommand extends ConsumeCommand
                             {--sleep=3 : Number of seconds to sleep when no job is available}
                             {--timeout=60 : The number of seconds a child process can run}
                             {--tries=1 : Number of times to attempt a job before logging it failed}
+                            {--exclusive=false : used by only one connection and the queue will be deleted when that connection close}
                            
                             {--consumer-tag}
                             {--prefetch-size=0}
@@ -50,6 +51,7 @@ class EventListenCommand extends ConsumeCommand
         $listener->setExchange($exchange);
         $listener->setRoutes(explode(':', $eventName));
         $listener->setExchangeType($this->option('exchange_type'));
+        $listener->setExclusive($this->option('exclusive'));
 
         parent::handle();
     }

@@ -13,7 +13,7 @@ use PhpAmqpLib\Exception\AMQPRuntimeException;
 use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Consumer;
-use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
+use Chocofamilyme\LaravelPubSub\Queue\RabbitMQQueue;
 
 /**
  * Class Listener
@@ -32,6 +32,21 @@ class Listener extends Consumer
      * @var string
      */
     protected $exchangeType = 'topic';
+
+    /**
+     * @var bool
+     */
+    protected $durable = true;
+
+    /**
+     * @var bool
+     */
+    protected $autoDelete = false;
+
+    /**
+     * @var bool
+     */
+    protected $exclusive = false;
 
     /**
      * @var array
@@ -58,7 +73,14 @@ class Listener extends Consumer
 
         $this->channel = $connection->getChannel();
 
-        $connection->declareQueue($queue);
+        $connection->declareQueue(
+            $queue,
+            $this->durable,
+            $this->autoDelete,
+            [
+                'exclusive' => $this->exclusive,
+            ]
+        );
 
         $this->channel->basic_qos(
             $this->prefetchSize,
@@ -187,5 +209,29 @@ class Listener extends Consumer
     public function setExchangeType(string $exchangeType): void
     {
         $this->exchangeType = $exchangeType;
+    }
+
+    /**
+     * @param bool $durable
+     */
+    public function setDurable(bool $durable): void
+    {
+        $this->durable = $durable;
+    }
+
+    /**
+     * @param bool $autoDelete
+     */
+    public function setAutoDelete(bool $autoDelete): void
+    {
+        $this->autoDelete = $autoDelete;
+    }
+
+    /**
+     * @param bool $exclusive
+     */
+    public function setExclusive(bool $exclusive): void
+    {
+        $this->exclusive = $exclusive;
     }
 }

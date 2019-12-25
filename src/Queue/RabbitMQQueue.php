@@ -335,7 +335,7 @@ class RabbitMQQueue extends Queue implements QueueContract
             $name,
             false,
             $durable,
-            false,
+            Arr::get($arguments, 'exclusive', false),
             $autoDelete,
             false,
             new AMQPTable($arguments)
