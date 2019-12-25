@@ -58,6 +58,8 @@ class Listener extends Consumer
 
         $this->channel = $connection->getChannel();
 
+        $connection->declareQueue($queue);
+
         $this->channel->basic_qos(
             $this->prefetchSize,
             $this->prefetchCount,
@@ -69,14 +71,14 @@ class Listener extends Consumer
                 $this->exchange,
                 $this->exchangeType
             );
-        }
 
-        foreach ($this->routes as $route) {
-            $this->channel->queue_bind(
-                $queue,
-                $this->exchange,
-                $route
-            );
+            foreach ($this->routes as $route) {
+                $this->channel->queue_bind(
+                    $queue,
+                    $this->exchange,
+                    $route
+                );
+            }
         }
 
         $this->channel->basic_consume(

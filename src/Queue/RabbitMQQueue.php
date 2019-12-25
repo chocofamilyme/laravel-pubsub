@@ -7,7 +7,7 @@ namespace Chocofamilyme\LaravelPubSub\Queue;
 use ErrorException;
 use Exception;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
-use Illuminate\Queue\Queue;
+use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue as Queue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use PhpAmqpLib\Channel\AMQPChannel;
