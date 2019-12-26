@@ -9,11 +9,12 @@ class EventListenCommand extends ConsumeCommand
 {
     protected $signature = 'event:listen
                             {connection : The name of the queue connection to work}
-                            {--event= : Event name, e.g. user.# -> listen to all events starting with user.} 
+                            {--event= : Event name, e.g. user.# -> listen to all events starting with user.}
                             {--queue= : The names of the queues to work}
-                            {--exchange= : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]} 
-                            {--exchange_type=topic : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]} 
+                            {--exchange= : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]}
+                            {--exchange_type=topic : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]}
                             {--once : Only process the next job on the queue}
+                            {--job=RabbitMQListener : Handler for internal or external message}
                             {--stop-when-empty : Stop when the queue is empty}
                             {--delay=0 : The number of seconds to delay failed jobs}
                             {--force : Force the worker to run even in maintenance mode}
@@ -22,7 +23,7 @@ class EventListenCommand extends ConsumeCommand
                             {--timeout=60 : The number of seconds a child process can run}
                             {--tries=1 : Number of times to attempt a job before logging it failed}
                             {--exclusive=false : used by only one connection and the queue will be deleted when that connection close}
-                           
+
                             {--consumer-tag}
                             {--prefetch-size=0}
                             {--prefetch-count=0}
@@ -52,6 +53,7 @@ class EventListenCommand extends ConsumeCommand
         $listener->setRoutes(explode(':', $eventName));
         $listener->setExchangeType($this->option('exchange_type'));
         $listener->setExclusive($this->option('exclusive'));
+        $listener->setJob($this->option('job'));
 
         parent::handle();
     }

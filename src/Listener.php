@@ -14,6 +14,7 @@ use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Consumer;
 use Chocofamilyme\LaravelPubSub\Queue\RabbitMQQueue;
+use Chocofamilyme\LaravelPubSub\Queue\Factory\RabbitMQFactory;
 
 /**
  * Class Listener
@@ -52,6 +53,11 @@ class Listener extends Consumer
      * @var array
      */
     protected $routes = [];
+
+    /**
+     * @var string
+     */
+    protected $job = 'RabbitMQListener';
 
     /**
      * @param string        $connectionName
@@ -111,13 +117,12 @@ class Listener extends Consumer
             false,
             false,
             function (AMQPMessage $message) use ($connection, $options, $connectionName, $queue): void {
-                $listener = new RabbitMQListener(
+                $listener = RabbitMQFactory::make(
                     $this->container,
                     $connection,
                     $message,
                     $connectionName,
-                    $queue,
-                    new EventRouter()
+                    $queue
                 );
 
                 if ($this->supportsAsyncSignals()) {
@@ -233,5 +238,13 @@ class Listener extends Consumer
     public function setExclusive(bool $exclusive): void
     {
         $this->exclusive = $exclusive;
+    }
+
+    /**
+     * @param string $job
+     */
+    public function setJob(string $job): void
+    {
+        $this->job = $job;
     }
 }
