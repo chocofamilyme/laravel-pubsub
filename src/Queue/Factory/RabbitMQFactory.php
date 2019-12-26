@@ -3,6 +3,7 @@
 namespace Chocofamilyme\LaravelPubSub\Queue\Factory;
 
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
+use Chocofamilyme\LaravelPubSub\Queue\Listeners\RabbitMQListener;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\Job as JobContract;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -16,11 +17,14 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 class RabbitMQFactory
 {
     /**
+     * @param string        $handler
      * @param Container     $container
      * @param RabbitMQQueue $rabbitmq
      * @param AMQPMessage   $message
      * @param string        $connectionName
      * @param string        $queue
+     *
+     * @return JobContract
      */
     public static function make(
         string $handler,
