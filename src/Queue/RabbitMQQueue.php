@@ -118,7 +118,7 @@ class RabbitMQQueue extends Queue implements QueueContract
      */
     public function pushRaw($payload, $queue = null, array $options = [])
     {
-        $queue = $this->getQueue($queue);
+        $queue    = $this->getQueue($queue);
         $exchange = '';
 
         if (Arr::get($options, 'publisher.exchange.declare', false)) {
@@ -345,7 +345,7 @@ class RabbitMQQueue extends Queue implements QueueContract
             $name,
             false,
             $durable,
-            false,
+            Arr::pull($arguments, 'exclusive', false),
             $autoDelete,
             false,
             new AMQPTable($arguments)
