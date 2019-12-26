@@ -6,12 +6,14 @@
 
 namespace Chocofamilyme\LaravelPubSub;
 
-use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
-use Chocofamilyme\LaravelPubSub\Queue\Listeners\RabbitMQListener;
+use ErrorException;
+use Exception;
+use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\WorkerOptions;
+use Illuminate\Support\Carbon;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
 use PhpAmqpLib\Message\AMQPMessage;
-use Symfony\Component\Debug\Exception\FatalThrowableError;
+use Throwable;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Consumer;
 use Chocofamilyme\LaravelPubSub\Queue\RabbitMQQueue;
 use Chocofamilyme\LaravelPubSub\Queue\Factory\RabbitMQFactory;
@@ -57,14 +59,23 @@ class Listener extends Consumer
     /**
      * @var string
      */
-    protected $job = 'RabbitMQListener';
+    protected $job = 'laravel';
+
+    /**
+     * @var int
+     */
+    protected $messageTtl = 0;
+
+    /**
+     * @var bool
+     */
+    protected $noAck = false;
 
     /**
      * @param string        $connectionName
      * @param string        $queue
      * @param WorkerOptions $options
      *
-     * @throws \ErrorException
      */
     public function daemon($connectionName, $queue, WorkerOptions $options): void
     {
@@ -83,9 +94,7 @@ class Listener extends Consumer
             $queue,
             $this->durable,
             $this->autoDelete,
-            [
-                'exclusive' => $this->exclusive,
-            ]
+            $this->getQueueArguments()
         );
 
         $this->channel->basic_qos(
@@ -113,7 +122,7 @@ class Listener extends Consumer
             $queue,
             $this->consumerTag,
             false,
-            false,
+            $this->noAck,
             false,
             false,
             function (AMQPMessage $message) use ($connection, $options, $connectionName, $queue): void {
@@ -157,7 +166,7 @@ class Listener extends Consumer
 
                 $this->stopWorkerIfLostConnection($exception);
             } catch (Throwable $exception) {
-                $this->exceptions->report($exception = new FatalThrowableError($exception));
+                $this->exceptions->report($exception = new ErrorException($exception));
 
                 $this->stopWorkerIfLostConnection($exception);
             }
@@ -167,6 +176,46 @@ class Listener extends Consumer
             // this worker and let whatever is "monitoring" it restart the process.
             $this->stopIfNecessary($options, $lastRestart, null);
         }
+    }
+
+    /**
+     * Mark the given job as failed if it has exceeded the maximum allowed attempts.
+     *
+     * @param string                          $connectionName
+     * @param Job $job
+     * @param int                             $maxTries
+     * @param Exception                      $e
+     *
+     * @return void
+     */
+    protected function markJobAsFailedIfWillExceedMaxAttempts($connectionName, $job, $maxTries, $e): void
+    {
+        $maxTries = !is_null($job->maxTries()) ? $job->maxTries() : $maxTries;
+
+        if ($job->timeoutAt() && $job->timeoutAt() <= Carbon::now()->getTimestamp()) {
+            $this->failJob($job, $e);
+        }
+
+        if ($maxTries > 0 && $job->attempts() >= $maxTries) {
+            $this->failJob($job, $e);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    protected function getQueueArguments(): array
+    {
+
+        $arguments = [
+            'exclusive' => $this->exclusive,
+        ];
+
+        if ($this->messageTtl) {
+            $arguments['x-message-ttl'] = $this->messageTtl;
+        }
+
+        return $arguments;
     }
 
     /**
@@ -247,5 +296,13 @@ class Listener extends Consumer
     public function setJob(string $job): void
     {
         $this->job = $job;
+    }
+
+    /**
+     * @param int $messageTtl
+     */
+    public function setMessageTtl(int $messageTtl): void
+    {
+        $this->messageTtl = $messageTtl;
     }
 }

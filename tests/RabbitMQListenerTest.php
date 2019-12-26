@@ -8,7 +8,7 @@ namespace Chocofamily\LaravelPubSub\Tests;
 
 use Chocofamily\LaravelPubSub\Tests\TestClasses\TestListener;
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
-use Chocofamilyme\LaravelPubSub\Queue\Listeners\RabbitMQListener;
+use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQCommon;
 use PhpAmqpLib\Message\AMQPMessage;
 use ReflectionClass;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
@@ -39,7 +39,7 @@ class RabbitMQListenerTest extends TestCase
 
         $rabbitmq = (new ReflectionClass(RabbitMQQueue::class))->newInstanceWithoutConstructor();
 
-        $rabbitMQListener = new RabbitMQListener(
+        $rabbitMQListener = new RabbitMQCommon(
             $this->app,
             $rabbitmq,
             $message,

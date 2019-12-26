@@ -4,13 +4,12 @@
  * @author  Moldabayev Vadim <moldabayev.v@chocolife.kz>
  */
 
-namespace Chocofamilyme\LaravelPubSub\Queue\Listeners;
+namespace Chocofamilyme\LaravelPubSub\Queue\Jobs;
 
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
 use Illuminate\Container\Container;
 use Illuminate\Support\Str;
 use PhpAmqpLib\Message\AMQPMessage;
-use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Jobs\RabbitMQJob;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
 /**
@@ -20,7 +19,7 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
  *
  * @package Chocofamilyme\LaravelPubSub\Queue\Jobs
  */
-class RabbitMQListener extends RabbitMQJob
+class RabbitMQCommon extends RabbitMQLaravel
 {
     /**
      * @var EventRouter

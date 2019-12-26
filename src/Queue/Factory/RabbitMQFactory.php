@@ -3,11 +3,11 @@
 namespace Chocofamilyme\LaravelPubSub\Queue\Factory;
 
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
-use Chocofamilyme\LaravelPubSub\Queue\Listeners\RabbitMQListener;
+use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQCommon;
+use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQLaravel;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\Job as JobContract;
 use PhpAmqpLib\Message\AMQPMessage;
-use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Jobs\RabbitMQJob;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
 /**
@@ -17,7 +17,7 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 class RabbitMQFactory
 {
     /**
-     * @param string        $handler
+     * @param string        $jobType
      * @param Container     $container
      * @param RabbitMQQueue $rabbitmq
      * @param AMQPMessage   $message
@@ -27,15 +27,15 @@ class RabbitMQFactory
      * @return JobContract
      */
     public static function make(
-        string $handler,
+        string $jobType,
         Container $container,
         RabbitMQQueue $rabbitmq,
         AMQPMessage $message,
         string $connectionName,
         string $queue
     ): JobContract {
-        if ($handler == 'RabbitMQListener') {
-            return new RabbitMQListener(
+        if ($jobType == 'common') {
+            return new RabbitMQCommon(
                 $container,
                 $rabbitmq,
                 $message,
@@ -43,8 +43,8 @@ class RabbitMQFactory
                 $queue,
                 new EventRouter()
             );
-        } elseif ($handler == 'RabbitMQJob') {
-            return new RabbitMQJob(
+        } elseif ($jobType == 'laravel') {
+            return new RabbitMQLaravel(
                 $container,
                 $rabbitmq,
                 $message,

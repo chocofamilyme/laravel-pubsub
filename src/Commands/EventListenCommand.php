@@ -14,7 +14,7 @@ class EventListenCommand extends ConsumeCommand
                             {--exchange= : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]}
                             {--exchange_type=topic : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]}
                             {--once : Only process the next job on the queue}
-                            {--job=RabbitMQListener : Handler for internal or external message}
+                            {--job=laravel : Handler for internal or external message}
                             {--stop-when-empty : Stop when the queue is empty}
                             {--delay=0 : The number of seconds to delay failed jobs}
                             {--force : Force the worker to run even in maintenance mode}
@@ -54,6 +54,7 @@ class EventListenCommand extends ConsumeCommand
         $listener->setExchangeType($this->option('exchange_type'));
         $listener->setExclusive($this->option('exclusive'));
         $listener->setJob($this->option('job'));
+        $listener->setMessageTtl(config('queue.connections.rabbitmq.options.message-ttl', 0));
 
         parent::handle();
     }

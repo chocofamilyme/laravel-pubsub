@@ -10,7 +10,7 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'default' => env('QUEUE_CONNECTION', 'rabbitmq'),
+    'default'     => env('QUEUE_CONNECTION', 'rabbitmq'),
 
     /*
     |--------------------------------------------------------------------------
@@ -44,7 +44,8 @@ return [
                     'passphrase'  => env('RABBITMQ_SSL_PASSPHRASE', null),
                 ],
 
-                'heartbeat' => 0,
+                'message-ttl' => 0,
+                'heartbeat'   => 0,
 
                 'publisher' => [
                     'queue' => [

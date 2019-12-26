@@ -43,17 +43,17 @@ return [
 ## Usage
 ### Single event
 ```bash
-php artisan event:listen rabbitmq --event=gateway.user.authenticated
+php artisan event:listen rabbitmq --event=gateway.user.authenticated --job=common
 ```
 Will listen to single event "gateway.user.authenticated" in default exchange and queue name
 
 ### Wildcard event
 ```bash
-php artisan event:listen rabbitmq --event=gateway.user.# --exchange=gateway --queue=guardqueue
+php artisan event:listen rabbitmq --event=gateway.user.# --exchange=gateway --queue=guardqueue --job=common
 ```
 Will listen to all "gateway.user.*" events in exchange gateway and with queue name "guardqueue"
 
 ### Laravel event
 ```bash
-php artisan event:listen rabbitmq --job=RabbitMQJob
+php artisan event:listen rabbitmq
 ```
