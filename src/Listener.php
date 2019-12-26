@@ -118,6 +118,7 @@ class Listener extends Consumer
             false,
             function (AMQPMessage $message) use ($connection, $options, $connectionName, $queue): void {
                 $listener = RabbitMQFactory::make(
+                    $this->job,
                     $this->container,
                     $connection,
                     $message,
