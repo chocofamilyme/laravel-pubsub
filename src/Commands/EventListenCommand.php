@@ -43,7 +43,7 @@ class EventListenCommand extends ConsumeCommand
     {
         $exchange  = $this->option('exchange') ?? '';
         $eventName = $this->option('event');
-        $queueName = $this->option('queue') ?? $eventName;
+        $queueName = $this->option('queue') ?? config('queue.connections.rabbitmq.queue');
 
         $this->info("Start listening event $eventName on exchange $exchange, queue name is $queueName");
 

@@ -69,6 +69,12 @@ class RabbitMQQueue extends Queue implements QueueContract
      */
     protected $currentJob;
 
+    /**
+     * RabbitMQQueue constructor.
+     *
+     * @param AbstractConnection $connection
+     * @param string             $defaultQueueName
+     */
     public function __construct(
         AbstractConnection $connection,
         string $defaultQueueName

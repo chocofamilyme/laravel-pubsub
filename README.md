@@ -52,3 +52,8 @@ Will listen to single event "gateway.user.authenticated" in default exchange and
 php artisan event:listen rabbitmq --event=gateway.user.# --exchange=gateway --queue=guardqueue
 ```
 Will listen to all "gateway.user.*" events in exchange gateway and with queue name "guardqueue"
+
+### Laravel event
+```bash
+php artisan event:listen rabbitmq --job=RabbitMQJob
+```
