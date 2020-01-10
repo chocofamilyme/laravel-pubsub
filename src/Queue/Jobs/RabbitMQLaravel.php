@@ -11,7 +11,7 @@ class RabbitMQLaravel extends RabbitMQJob
      */
     public function release($delay = 0): void
     {
-        if ($delay) {
+        if ($delay > 0) {
             sleep($delay);
         }
 
