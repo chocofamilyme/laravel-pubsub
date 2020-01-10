@@ -11,6 +11,10 @@ class RabbitMQLaravel extends RabbitMQJob
      */
     public function release($delay = 0): void
     {
+        if ($delay) {
+            sleep($delay);
+        }
+
         $this->released = true;
         $this->rabbitmq->reject($this, !$this->hasFailed());
     }
