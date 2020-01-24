@@ -2,10 +2,11 @@
 
 namespace Chocofamilyme\LaravelPubSub\Amqp;
 
+use Chocofamilyme\LaravelPubSub\Amqp\Message\OutputMessage;
 use Chocofamilyme\LaravelPubSub\Queue\RabbitMQQueue;
-use Chocofamilyme\LaravelPubSub\Exceptions\InvalidArgumentException;
 use Illuminate\Support\Arr;
 use PhpAmqpLib\Message\AMQPMessage;
+use Ramsey\Uuid\Uuid;
 
 /**
  * Class Amqp
@@ -15,42 +16,41 @@ use PhpAmqpLib\Message\AMQPMessage;
 class Amqp
 {
     /**
+     * @var RabbitMQQueue
+     */
+    private $rabbit;
+
+    public function __construct(RabbitMQQueue $queue)
+    {
+        $this->rabbit = $queue;
+    }
+
+    /**
      * @param string $routing
-     * @param mixed  $message
+     * @param mixed  $body
      * @param array  $properties
      * @param array  $headers
      * @param array  $applicationHeaders
      *
      * @return mixed
-     * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function publish(
         $routing,
-        $message,
+        $body,
         array $properties = [],
         array $headers = [],
         array $applicationHeaders = []
     ) {
-        /** @var RabbitMQQueue $queue */
-        $queue = app()->get('queue');
+        $correlationId = $headers['correlation_id'] ?? Uuid::uuid4();
 
-        if (!$queue instanceof RabbitMQQueue) {
-            throw new InvalidArgumentException('Queue worker should be instance RabbitMQQueue');
-        }
+        $headers['correlation_id'] = $correlationId;
 
-        /** @var AMQPMessage $message */
-        [$message, $correlationId] = $queue->createMessage($message);
+        /** @var OutputMessage $message */
+        $message = $this->createMessage($body, $headers, $applicationHeaders);
 
-        foreach ($headers as $name => $value) {
-            $message->set($name, $value);
-        }
-
-        if ($applicationHeaders) {
-            $message->set('application_headers', $applicationHeaders);
-        }
-
-        $queue->getChannel()->basic_publish(
-            $message,
+        $this->rabbit->getChannel()->basic_publish(
+            $message->getMessage(),
             Arr::get($properties, 'exchange', ''),
             $routing,
             Arr::get($properties, 'mandatory', false),
@@ -59,5 +59,20 @@ class Amqp
         );
 
         return $correlationId;
+    }
+
+    /**
+     * @param       $payload
+     * @param array $headers
+     * @param array $applicationHeaders
+     *
+     * @return OutputMessage
+     * @throws \Exception
+     */
+    protected function createMessage($payload, array $headers, array $applicationHeaders): OutputMessage
+    {
+        $headers['application_headers'] = $applicationHeaders;
+
+        return new OutputMessage($payload, $headers);
     }
 }

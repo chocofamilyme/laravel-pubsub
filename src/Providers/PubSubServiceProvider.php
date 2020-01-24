@@ -2,6 +2,7 @@
 
 namespace Chocofamilyme\LaravelPubSub\Providers;
 
+use Chocofamilyme\LaravelPubSub\Amqp\Amqp;
 use Chocofamilyme\LaravelPubSub\Commands\EventListenCommand;
 use Chocofamilyme\LaravelPubSub\Listener;
 use Illuminate\Contracts\Debug\ExceptionHandler;
@@ -65,7 +66,10 @@ class PubSubServiceProvider extends ServiceProvider
         ]);
 
         // Add class and it's facade
-        $this->app->bind('Amqp', \Chocofamilyme\LaravelPubSub\Amqp\Amqp::class);
+        $this->app->bind('Amqp', function ($app) {
+            return new Amqp($app['queue']);
+        });
+
         if (!class_exists('Amqp')) {
             class_alias(\Chocofamilyme\LaravelPubSub\Amqp\AmqpFacade::class, 'Amqp');
         }

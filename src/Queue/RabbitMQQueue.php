@@ -4,13 +4,14 @@
 
 namespace Chocofamilyme\LaravelPubSub\Queue;
 
+use Chocofamilyme\LaravelPubSub\Amqp\Message\OutputMessage;
+use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQLaravel;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue as Queue;
 use Illuminate\Support\Arr;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Wire\AMQPTable;
-use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Jobs\RabbitMQLaravel;
 
 class RabbitMQQueue extends Queue implements QueueContract
 {
@@ -58,6 +59,7 @@ class RabbitMQQueue extends Queue implements QueueContract
 
     /**
      * {@inheritdoc}
+     * @throws \Exception
      */
     public function pushRaw($payload, $queue = null, array $options = [])
     {
@@ -70,10 +72,7 @@ class RabbitMQQueue extends Queue implements QueueContract
         }
 
         if (Arr::get($options, 'publisher.queue.declare', false)) {
-            $this->declareQueue($queue, true, false, [
-                'x-dead-letter-exchange'    => $queue,
-                'x-dead-letter-routing-key' => $queue,
-            ]);
+            $this->declareQueue($queue);
         }
 
         if (Arr::get($options, 'publisher.queue.bind', false)) {
@@ -85,6 +84,23 @@ class RabbitMQQueue extends Queue implements QueueContract
         $this->channel->basic_publish($message, $exchange, $queue, true, false);
 
         return $correlationId;
+    }
+
+    /**
+     * @param     $payload
+     * @param int $attempts
+     *
+     * @return array
+     * @throws \Exception
+     */
+    protected function createMessage($payload, int $attempts = 0): array
+    {
+        $outputMessage = new OutputMessage($payload, [], $attempts);
+
+        return [
+            $outputMessage->getMessage(),
+            $outputMessage->getMessage()->get_properties()['correlation_id'],
+        ];
     }
 
     public function declareQueue(

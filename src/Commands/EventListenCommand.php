@@ -23,6 +23,7 @@ class EventListenCommand extends ConsumeCommand
                             {--timeout=60 : The number of seconds a child process can run}
                             {--tries=1 : Number of times to attempt a job before logging it failed}
                             {--exclusive=0 : used by only one connection and the queue will be deleted when that connection close}
+                            {--consumer_exclusive=0 : request exclusive consumer access, meaning only this consumer can access the queue}
 
                             {--consumer-tag}
                             {--prefetch-size=0}
@@ -53,6 +54,7 @@ class EventListenCommand extends ConsumeCommand
         $listener->setRoutes(explode(':', $eventName));
         $listener->setExchangeType($this->option('exchange_type'));
         $listener->setExclusive($this->option('exclusive'));
+        $listener->setConsumerExclusive($this->option('consumer_exclusive'));
         $listener->setJob($this->option('job'));
         $listener->setMessageTtl(config('queue.connections.rabbitmq.options.message-ttl', 0));
 

@@ -72,6 +72,11 @@ class Listener extends Consumer
     protected $noAck = false;
 
     /**
+     * @var bool
+     */
+    protected $consumerExclusive = false;
+
+    /**
      * @param string        $connectionName
      * @param string        $queue
      * @param WorkerOptions $options
@@ -123,7 +128,7 @@ class Listener extends Consumer
             $this->consumerTag,
             false,
             $this->noAck,
-            false,
+            $this->consumerExclusive,
             false,
             function (AMQPMessage $message) use ($connection, $options, $connectionName, $queue): void {
                 $listener = RabbitMQFactory::make(
@@ -304,5 +309,13 @@ class Listener extends Consumer
     public function setMessageTtl(int $messageTtl): void
     {
         $this->messageTtl = $messageTtl;
+    }
+
+    /**
+     * @param bool $consumerExclusive
+     */
+    public function setConsumerExclusive(bool $consumerExclusive): void
+    {
+        $this->consumerExclusive = $consumerExclusive;
     }
 }
