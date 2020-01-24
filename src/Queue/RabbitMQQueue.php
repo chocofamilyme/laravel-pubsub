@@ -79,7 +79,7 @@ class RabbitMQQueue extends Queue implements QueueContract
             $this->bindQueue($queue, $queue, $queue);
         }
 
-        [$message, $correlationId] = $this->createMessage($payload);
+        [$message, $correlationId] = $this->createMessage(json_decode($payload, true));
 
         $this->channel->basic_publish($message, $exchange, $queue, true, false);
 
