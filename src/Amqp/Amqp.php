@@ -4,8 +4,8 @@ namespace Chocofamilyme\LaravelPubSub\Amqp;
 
 use Chocofamilyme\LaravelPubSub\Amqp\Message\OutputMessage;
 use Chocofamilyme\LaravelPubSub\Queue\RabbitMQQueue;
+use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Arr;
-use PhpAmqpLib\Message\AMQPMessage;
 use Ramsey\Uuid\Uuid;
 
 /**
@@ -20,9 +20,9 @@ class Amqp
      */
     private $rabbit;
 
-    public function __construct(RabbitMQQueue $queue)
+    public function __construct(QueueManager $queue)
     {
-        $this->rabbit = $queue;
+        $this->rabbit = $queue->connection('rabbitmq');
     }
 
     /**
@@ -30,7 +30,6 @@ class Amqp
      * @param mixed  $body
      * @param array  $properties
      * @param array  $headers
-     * @param array  $applicationHeaders
      *
      * @return mixed
      * @throws \Exception
@@ -39,15 +38,14 @@ class Amqp
         $routing,
         $body,
         array $properties = [],
-        array $headers = [],
-        array $applicationHeaders = []
+        array $headers = []
     ) {
         $correlationId = $headers['correlation_id'] ?? Uuid::uuid4();
 
         $headers['correlation_id'] = $correlationId;
 
         /** @var OutputMessage $message */
-        $message = $this->createMessage($body, $headers, $applicationHeaders);
+        $message = new OutputMessage($body, $headers);
 
         $this->rabbit->getChannel()->basic_publish(
             $message->getMessage(),
@@ -59,20 +57,5 @@ class Amqp
         );
 
         return $correlationId;
-    }
-
-    /**
-     * @param       $payload
-     * @param array $headers
-     * @param array $applicationHeaders
-     *
-     * @return OutputMessage
-     * @throws \Exception
-     */
-    protected function createMessage($payload, array $headers, array $applicationHeaders): OutputMessage
-    {
-        $headers['application_headers'] = $applicationHeaders;
-
-        return new OutputMessage($payload, $headers);
     }
 }
