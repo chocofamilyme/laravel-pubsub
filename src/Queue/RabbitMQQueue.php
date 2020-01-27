@@ -65,10 +65,10 @@ class RabbitMQQueue extends Queue implements QueueContract
     public function pushRaw($payload, $queue = null, array $options = [])
     {
         $queue    = $this->getQueue($queue);
-        $exchange = '';
+        $exchange = Arr::get($options, 'exchange.name', '');
 
         if (Arr::get($options, 'exchange.declare', false)) {
-            $exchange = Arr::get($options, 'exchange.name', $queue);
+            $exchange = $exchange ?: $queue;
 
             $this->declareExchange(
                 $exchange,
