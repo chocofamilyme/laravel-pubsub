@@ -20,9 +20,10 @@ class Amqp
      */
     private $rabbit;
 
-    public function __construct(QueueManager $queue)
+    public function __construct(QueueManager $queue, ?string $connection = null)
     {
-        $this->rabbit = $queue->connection('rabbitmq');
+        $connection   = $connection ?? config('queue.default');
+        $this->rabbit = $queue->connection($connection);
     }
 
     /**
