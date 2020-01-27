@@ -47,11 +47,9 @@ return [
 
                 'heartbeat' => 0,
 
-                'publisher' => [
-                    'queue' => [
-                        'declare' => false,
-                        'bind'    => false,
-                    ],
+                'queue' => [
+                    'declare' => false,
+                    'bind'    => false,
                 ],
 
                 'consumer' => [

@@ -2,11 +2,8 @@
 
 namespace Chocofamilyme\LaravelPubSub\Amqp;
 
-use Chocofamilyme\LaravelPubSub\Amqp\Message\OutputMessage;
 use Chocofamilyme\LaravelPubSub\Queue\RabbitMQQueue;
 use Illuminate\Queue\QueueManager;
-use Illuminate\Support\Arr;
-use PhpAmqpLib\Exchange\AMQPExchangeType;
 use Ramsey\Uuid\Uuid;
 
 /**
@@ -46,25 +43,7 @@ class Amqp
 
         $headers['correlation_id'] = $correlationId;
 
-        $exchange = Arr::get($properties, 'exchange', '');
-        if ($exchange) {
-            $this->rabbit->declareExchange(
-                $exchange,
-                Arr::get($properties, 'exchange_type', AMQPExchangeType::TOPIC)
-            );
-        }
-
-        /** @var OutputMessage $message */
-        $message = new OutputMessage($body, $headers);
-
-        $this->rabbit->getChannel()->basic_publish(
-            $message->getMessage(),
-            $exchange,
-            $routing,
-            Arr::get($properties, 'mandatory', false),
-            Arr::get($properties, 'immediate', false),
-            Arr::get($properties, 'ticket', null)
-        );
+        $correlationId = $this->rabbit->pushRaw($body, $routing, $properties);
 
         return $correlationId;
     }

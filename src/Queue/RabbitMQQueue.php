@@ -7,6 +7,7 @@ namespace Chocofamilyme\LaravelPubSub\Queue;
 use Chocofamilyme\LaravelPubSub\Amqp\Message\OutputMessage;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQLaravel;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use PhpAmqpLib\Exchange\AMQPExchangeType;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue as Queue;
 use Illuminate\Support\Arr;
 use PhpAmqpLib\Channel\AMQPChannel;
@@ -66,20 +67,27 @@ class RabbitMQQueue extends Queue implements QueueContract
         $queue    = $this->getQueue($queue);
         $exchange = '';
 
-        if (Arr::get($options, 'publisher.exchange.declare', false)) {
-            $this->declareExchange($queue);
-            $exchange = $queue;
+        if (Arr::get($options, 'exchange.declare', false)) {
+            $exchange = Arr::get($options, 'exchange.name', $queue);
+
+            $this->declareExchange(
+                $exchange,
+                Arr::get($options, 'exchange.type', AMQPExchangeType::DIRECT)
+            );
         }
 
-        if (Arr::get($options, 'publisher.queue.declare', false)) {
+        if (Arr::get($options, 'queue.declare', false)) {
             $this->declareQueue($queue);
         }
 
-        if (Arr::get($options, 'publisher.queue.bind', false)) {
+        if (Arr::get($options, 'queue.bind', false)) {
             $this->bindQueue($queue, $queue, $queue);
         }
 
-        [$message, $correlationId] = $this->createMessage(json_decode($payload, true));
+        [$message, $correlationId] = $this->getMessage(
+            $payload,
+            Arr::get($options, 'headers', [])
+        );
 
         $this->channel->basic_publish($message, $exchange, $queue, true, false);
 
@@ -87,15 +95,20 @@ class RabbitMQQueue extends Queue implements QueueContract
     }
 
     /**
-     * @param     $payload
-     * @param int $attempts
+     * @param array|string $payload
+     * @param array        $headers
+     * @param int          $attempts
      *
      * @return array
      * @throws \Exception
      */
-    protected function createMessage($payload, int $attempts = 0): array
+    protected function getMessage($payload, array $headers = [], int $attempts = 0): array
     {
-        $outputMessage = new OutputMessage($payload, [], $attempts);
+        if (is_string($payload)) {
+            $payload = json_decode($payload, true);
+        }
+
+        $outputMessage = new OutputMessage($payload, $headers, $attempts);
 
         return [
             $outputMessage->getMessage(),
