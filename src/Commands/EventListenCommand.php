@@ -20,7 +20,7 @@ class EventListenCommand extends ConsumeCommand
                             {--force : Force the worker to run even in maintenance mode}
                             {--memory=128 : The memory limit in megabytes}
                             {--sleep=3 : Number of seconds to sleep when no job is available}
-                            {--timeout=60 : The number of seconds a child process can run}
+                            {--timeout=0 : The number of seconds a child process can run}
                             {--tries=1 : Number of times to attempt a job before logging it failed}
                             {--exclusive=0 : used by only one connection and the queue will be deleted when that connection close}
                             {--consumer_exclusive=0 : request exclusive consumer access, meaning only this consumer can access the queue}
