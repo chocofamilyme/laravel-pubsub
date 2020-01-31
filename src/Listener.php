@@ -76,6 +76,8 @@ class Listener extends Consumer
      */
     protected $consumerExclusive = false;
 
+    protected $waitNonBlockin = false;
+
     /**
      * @param string        $connectionName
      * @param string        $queue
@@ -161,7 +163,11 @@ class Listener extends Consumer
             // fire off this job for processing. Otherwise, we will need to sleep the
             // worker so no more jobs are processed until they should be processed.
             try {
-                $this->channel->wait(null, true, (int) $options->timeout);
+                $this->channel->wait(
+                    null,
+                    $this->waitNonBlockin,
+                    (int) $options->timeout
+                );
             } catch (AMQPRuntimeException $exception) {
                 $this->exceptions->report($exception);
 
@@ -184,12 +190,31 @@ class Listener extends Consumer
     }
 
     /**
+     * Stop the process if necessary.
+     *
+     * @param \Illuminate\Queue\WorkerOptions $options
+     * @param int                             $lastRestart
+     * @param mixed                           $job
+     *
+     * @return void
+     */
+    protected function stopIfNecessary(WorkerOptions $options, $lastRestart, $job = null)
+    {
+        if ($this->shouldQuit) {
+            $this->stop();
+        } elseif ($options->stopWhenEmpty && is_null($job)) {
+            $this->stop();
+        }
+    }
+
+
+    /**
      * Mark the given job as failed if it has exceeded the maximum allowed attempts.
      *
-     * @param string                          $connectionName
-     * @param Job $job
-     * @param int                             $maxTries
-     * @param Exception                      $e
+     * @param string    $connectionName
+     * @param Job       $job
+     * @param int       $maxTries
+     * @param Exception $e
      *
      * @return void
      */
@@ -317,5 +342,13 @@ class Listener extends Consumer
     public function setConsumerExclusive(bool $consumerExclusive): void
     {
         $this->consumerExclusive = $consumerExclusive;
+    }
+
+    /**
+     * @param bool $waitNonBlockin
+     */
+    public function setWaitNonBlockin(bool $waitNonBlockin): void
+    {
+        $this->waitNonBlockin = $waitNonBlockin;
     }
 }

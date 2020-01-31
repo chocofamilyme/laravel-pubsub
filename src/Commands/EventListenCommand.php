@@ -24,6 +24,7 @@ class EventListenCommand extends ConsumeCommand
                             {--tries=1 : Number of times to attempt a job before logging it failed}
                             {--exclusive=0 : used by only one connection and the queue will be deleted when that connection close}
                             {--consumer_exclusive=0 : request exclusive consumer access, meaning only this consumer can access the queue}
+                            {--wait_non_blocking=0 : non-blocking actions}
 
                             {--consumer-tag}
                             {--prefetch-size=0}
@@ -61,6 +62,7 @@ class EventListenCommand extends ConsumeCommand
         $listener->setConsumerExclusive($this->option('consumer_exclusive'));
         $listener->setJob($this->option('job'));
         $listener->setMessageTtl(config('queue.connections.rabbitmq.options.message-ttl', 0));
+        $listener->setWaitNonBlockin((bool) $this->option('wait_non_blocking'));
 
         parent::handle();
     }
