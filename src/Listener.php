@@ -76,7 +76,7 @@ class Listener extends Consumer
      */
     protected $consumerExclusive = false;
 
-    protected $waitNonBlockin = true;
+    protected $waitNonBlockin = false;
 
     /**
      * @param string        $connectionName

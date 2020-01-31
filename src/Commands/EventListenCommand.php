@@ -24,7 +24,7 @@ class EventListenCommand extends ConsumeCommand
                             {--tries=1 : Number of times to attempt a job before logging it failed}
                             {--exclusive=0 : used by only one connection and the queue will be deleted when that connection close}
                             {--consumer_exclusive=0 : request exclusive consumer access, meaning only this consumer can access the queue}
-                            {--wait_non_blocking=1 : non-blocking actions}
+                            {--wait_non_blocking=0 : non-blocking actions}
 
                             {--consumer-tag}
                             {--prefetch-size=0}
