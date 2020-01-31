@@ -142,10 +142,6 @@ class Listener extends Consumer
                     $queue
                 );
 
-                if ($this->supportsAsyncSignals()) {
-                    $this->registerTimeoutHandler($listener, $options);
-                }
-
                 $this->runJob($listener, $connectionName, $options);
             }
         );
