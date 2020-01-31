@@ -184,6 +184,24 @@ class Listener extends Consumer
     }
 
     /**
+     * Stop the process if necessary.
+     *
+     * @param  \Illuminate\Queue\WorkerOptions  $options
+     * @param  int  $lastRestart
+     * @param  mixed  $job
+     * @return void
+     */
+    protected function stopIfNecessary(WorkerOptions $options, $lastRestart, $job = null)
+    {
+        if ($this->shouldQuit) {
+            $this->stop();
+        } elseif ($options->stopWhenEmpty && is_null($job)) {
+            $this->stop();
+        }
+    }
+
+
+    /**
      * Mark the given job as failed if it has exceeded the maximum allowed attempts.
      *
      * @param string                          $connectionName
