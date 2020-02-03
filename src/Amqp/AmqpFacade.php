@@ -1,16 +1,16 @@
 <?php
 
-namespace Chocofamilyme\LaravelPubSub\AmqpExtension;
+namespace Chocofamilyme\LaravelPubSub\Amqp;
 
 use Illuminate\Support\Facades\Facade;
 
-class AmqpExtendetFacade extends Facade
+class AmqpFacade extends Facade
 {
     /**
      * @return string
      */
     protected static function getFacadeAccessor()
     {
-        return 'AmqpExtendet';
+        return 'Amqp';
     }
 }

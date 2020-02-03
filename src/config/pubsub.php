@@ -15,6 +15,5 @@ return [
     | ],
     |
     */
-    'listen' => [
-    ]
+    'listen' => [],
 ];

@@ -2,19 +2,34 @@
 
 namespace Chocofamilyme\LaravelPubSub\Commands;
 
-use Amqp;
-use App\Exceptions\Handler;
-use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
-use Illuminate\Console\Command;
+use Chocofamilyme\LaravelPubSub\Listener;
+use VladimirYuldashev\LaravelQueueRabbitMQ\Console\ConsumeCommand;
 
-class EventListenCommand extends Command
+class EventListenCommand extends ConsumeCommand
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'event:listen {eventname : Event name, e.g. user.# -> listen to all events starting with user.} {--exchange= : Optional, specifies exchange which should be listened [for default value see app/config/amqp.php]} {--queuename= : Optional, specifies queue name which should be created [default is the same as event name]}';
+    protected $signature = 'event:listen
+                            {event? : Event name, e.g. user.# -> listen to all events starting with user.}
+                            {connection=rabbitmq : The name of the queue connection to work}
+                            {--queue= : The names of the queues to work}
+                            {--exchange= : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]}
+                            {--exchange_type=topic : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]}
+                            {--once : Only process the next job on the queue}
+                            {--job=laravel : Handler for internal or external message}
+                            {--stop-when-empty : Stop when the queue is empty}
+                            {--delay=0 : The number of seconds to delay failed jobs}
+                            {--force : Force the worker to run even in maintenance mode}
+                            {--memory=128 : The memory limit in megabytes}
+                            {--sleep=3 : Number of seconds to sleep when no job is available}
+                            {--timeout=0 : The number of seconds a child process can run}
+                            {--tries=1 : Number of times to attempt a job before logging it failed}
+                            {--exclusive=0 : used by only one connection and the queue will be deleted when that connection close}
+                            {--consumer_exclusive=0 : request exclusive consumer access, meaning only this consumer can access the queue}
+                            {--wait_non_blocking=0 : non-blocking actions}
+
+                            {--consumer-tag}
+                            {--prefetch-size=0}
+                            {--prefetch-count=1}
+                           ';
 
     /**
      * The console command description.
@@ -24,45 +39,31 @@ class EventListenCommand extends Command
     protected $description = 'Listen to (rabbit) events with this command';
 
     /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
-        $exchange = $this->option('exchange') ?? config('amqp.properties.production.exchange');
-        $eventName = $this->argument('eventname');
-        $queueName = $this->option('queuename') ?? $eventName;
+        $eventName = $this->argument('event');
+        $exchange  = $this->option('exchange') ?? '';
+        $queueName = $this->option('queue') ?? config('queue.connections.rabbitmq.queue');
 
         $this->info("Start listening event $eventName on exchange $exchange, queue name is $queueName");
 
-        Amqp::consume($queueName, function ($message, $resolver) {
-            $routingKey = $message->delivery_info['routing_key'];
-            $this->info('Received event ' . $routingKey);
+        /** @var Listener $listener */
+        $listener = $this->worker;
+        $listener->setExchange($exchange);
 
-            try {
-                $eventRouter = new EventRouter();
-                $eventRouter->handle($routingKey, $message->body);
-            } catch (\Exception $e) {
-                $exceptionHandler = new Handler(app());
-                $exceptionHandler->report($e);
-                echo "Error occured: " . $e->getMessage() . PHP_EOL;
-            }
+        if($eventName) {
+            $listener->setRoutes(explode(':', $eventName));
+        }
 
-            $resolver->acknowledge($message);
-            $this->info('Event processed');
-        }, [
-            'exchange' => $exchange,
-            'routing' => $eventName,
-            'persistent' => true // required if you want to listen forever,
-        ]);
+        $listener->setExchangeType($this->option('exchange_type'));
+        $listener->setExclusive($this->option('exclusive'));
+        $listener->setConsumerExclusive($this->option('consumer_exclusive'));
+        $listener->setJob($this->option('job'));
+        $listener->setMessageTtl(config('queue.connections.rabbitmq.options.message-ttl', 0));
+        $listener->setWaitNonBlockin((bool) $this->option('wait_non_blocking'));
+
+        parent::handle();
     }
 }
