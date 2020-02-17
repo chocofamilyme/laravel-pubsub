@@ -78,6 +78,15 @@ class Listener extends Consumer
 
     protected $waitNonBlockin = false;
 
+    /** @var bool  */
+    private $exchangePassive = false;
+
+    /** @var bool  */
+    private $exchangeDurable = true;
+
+    /** @var bool  */
+    private $exchangeAutoDelete = false;
+
     /**
      * @param string        $connectionName
      * @param string        $queue
@@ -113,7 +122,10 @@ class Listener extends Consumer
         if ($this->exchange) {
             $this->channel->exchange_declare(
                 $this->exchange,
-                $this->exchangeType
+                $this->exchangeType,
+                $this->exchangePassive,
+                $this->exchangeDurable,
+                $this->exchangeAutoDelete
             );
 
             foreach ($this->routes as $route) {
@@ -346,5 +358,29 @@ class Listener extends Consumer
     public function setWaitNonBlockin(bool $waitNonBlockin): void
     {
         $this->waitNonBlockin = $waitNonBlockin;
+    }
+
+    /**
+     * @param bool $exchangePassive
+     */
+    public function setExchangePassive(bool $exchangePassive): void
+    {
+        $this->exchangePassive = $exchangePassive;
+    }
+
+    /**
+     * @param bool $exchangeDurable
+     */
+    public function setExchangeDurable(bool $exchangeDurable): void
+    {
+        $this->exchangeDurable = $exchangeDurable;
+    }
+
+    /**
+     * @param bool $exchangeAutoDelete
+     */
+    public function setExchangeAutoDelete(bool $exchangeAutoDelete): void
+    {
+        $this->exchangeAutoDelete = $exchangeAutoDelete;
     }
 }

@@ -25,6 +25,9 @@ class EventListenCommand extends ConsumeCommand
                             {--exclusive=0 : used by only one connection and the queue will be deleted when that connection close}
                             {--consumer_exclusive=0 : request exclusive consumer access, meaning only this consumer can access the queue}
                             {--wait_non_blocking=0 : non-blocking actions}
+                            {--exchange_passive=0 : If set, the server will reply with Declare-Ok if the exchange already exists with the same name, and raise an error if not}
+                            {--exchange_durable=1 : If set when creating a new exchange, the exchange will be marked as durable}
+                            {--exchange_auto_delete=0 : If set, the exchange is deleted when all queues have finished using it}
 
                             {--consumer-tag}
                             {--prefetch-size=0}
@@ -53,7 +56,7 @@ class EventListenCommand extends ConsumeCommand
         $listener = $this->worker;
         $listener->setExchange($exchange);
 
-        if($eventName) {
+        if ($eventName) {
             $listener->setRoutes(explode(':', $eventName));
         }
 
@@ -63,6 +66,10 @@ class EventListenCommand extends ConsumeCommand
         $listener->setJob($this->option('job'));
         $listener->setMessageTtl(config('queue.connections.rabbitmq.options.message-ttl', 0));
         $listener->setWaitNonBlockin((bool) $this->option('wait_non_blocking'));
+
+        $listener->setExchangePassive((bool) $this->option('exchange_passive'));
+        $listener->setExchangeDurable((bool) $this->option('exchange_durable'));
+        $listener->setExchangeAutoDelete((bool) $this->option('exchange_auto_delete'));
 
         parent::handle();
     }

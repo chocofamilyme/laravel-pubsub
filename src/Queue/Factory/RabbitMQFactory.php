@@ -49,7 +49,7 @@ class RabbitMQFactory
                 $rabbitmq,
                 $message,
                 $connectionName,
-                $queue,
+                $queue
             );
         }
 

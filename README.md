@@ -94,6 +94,9 @@ php artisan event:listen
 | consumer-tag                      | ''                        |    |
 | prefetch-size                     | 0                         |    |
 | prefetch-count                    | 1                         | [RabbitMQ Doc](https://www.rabbitmq.com/consumer-prefetch.html)  |
+| exchange_passive                  | 0                         | [RabbitMQ Doc](https://www.rabbitmq.com/amqp-0-9-1-reference.html#exchange.declare.passive)  |
+| exchange_durable                  | 1                         | [RabbitMQ Doc](https://www.rabbitmq.com/amqp-0-9-1-reference.html#exchange.declare.durable)  |
+| exchange_auto_delete              | 0                         | [RabbitMQ Doc](https://www.rabbitmq.com/amqp-0-9-1-reference.html#exchange.declare.auto-delete)  |
 
 ### Base publish message
 
