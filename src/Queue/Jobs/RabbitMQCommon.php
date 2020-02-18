@@ -8,6 +8,7 @@ namespace Chocofamilyme\LaravelPubSub\Queue\Jobs;
 
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
 use Illuminate\Container\Container;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use PhpAmqpLib\Message\AMQPMessage;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
@@ -68,5 +69,15 @@ class RabbitMQCommon extends RabbitMQLaravel
             [$class, $method] = Str::parseCallback($listener, 'handle');
             ($this->instance = $this->resolve($class))->{$method}($payload);
         }
+    }
+
+    /**
+     * Get the name of the queued job class.
+     *
+     * @return string
+     */
+    public function getName(): ?string
+    {
+        return $this->payload()['job'] ?? Arr::get($this->message->delivery_info, 'routing_key');
     }
 }
