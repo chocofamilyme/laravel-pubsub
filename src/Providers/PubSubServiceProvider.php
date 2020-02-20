@@ -4,9 +4,11 @@ namespace Chocofamilyme\LaravelPubSub\Providers;
 
 use Chocofamilyme\LaravelPubSub\Amqp\Amqp;
 use Chocofamilyme\LaravelPubSub\Commands\EventListenCommand;
+use Chocofamilyme\LaravelPubSub\Events\Dispatcher;
 use Chocofamilyme\LaravelPubSub\Listener;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Contracts\Queue\Factory as QueueFactoryContract;
 
 class PubSubServiceProvider extends ServiceProvider
 {
@@ -51,6 +53,12 @@ class PubSubServiceProvider extends ServiceProvider
                 EventListenCommand::class,
             ]);
         }
+
+        $this->app->singleton('events', function ($app) {
+            return (new Dispatcher($app))->setQueueResolver(function () use ($app) {
+                return $app->make(QueueFactoryContract::class);
+            });
+        });
     }
 
     /**

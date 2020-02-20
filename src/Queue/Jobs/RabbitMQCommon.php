@@ -63,7 +63,7 @@ class RabbitMQCommon extends RabbitMQLaravel
     {
         $payload = $this->payload();
 
-        $listeners = $this->eventRouter->getListeners($this->message->delivery_info['routing_key']);
+        $listeners = $this->eventRouter->getListeners($payload['_event']);
 
         foreach ($listeners as $listener) {
             [$class, $method] = Str::parseCallback($listener, 'handle');

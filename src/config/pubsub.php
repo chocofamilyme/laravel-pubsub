@@ -10,10 +10,14 @@ return [
     |
     | Example:
     |
-    | 'user.notified' => [
-    |     NotifyAboutDeviceChangeListener::class,
+    | listen => [
+    |     'UserNotified' => [
+    |         NotifyAboutDeviceChangeListener::class,
+    |     ]
     | ],
     |
     */
-    'listen' => [],
+    'listen' => [
+        
+    ]
 ];
