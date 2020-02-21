@@ -3,7 +3,7 @@
 namespace Chocofamilyme\LaravelPubSub\Queue\Factory;
 
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
-use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQCommon;
+use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQExternal;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQLaravel;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\Job as JobContract;
@@ -34,8 +34,8 @@ class RabbitMQFactory
         string $connectionName,
         string $queue
     ): JobContract {
-        if ($jobType == 'common') {
-            return new RabbitMQCommon(
+        if ($jobType == 'external') {
+            return new RabbitMQExternal(
                 $container,
                 $rabbitmq,
                 $message,

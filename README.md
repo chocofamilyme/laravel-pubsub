@@ -121,22 +121,22 @@ Laravel events should be listened with the --job=laravel flag
 php artisan event:listen --job=laravel
 ```
 
-RabbitMQ events should be listened with the --job=common flag
+RabbitMQ events should be listened with the --job=external flag
 ```bash
-php artisan event:listen --job=common
+php artisan event:listen --job=external
 ```
 
 ### Examples
 #### Single event  
 ```bash
-php artisan event:listen gateway.user.authenticated --job=common
+php artisan event:listen gateway.user.authenticated --job=external
 ```  
 Will listen to single event "gateway.user.authenticated" in default exchange and queue name. Configure the internal event routing in ```config/pubsub.php```
 Event is taken from payload, when you publish the event it appends the event name automatically there.
   
 #### Wildcard event
 ```bash
-php artisan event:listen gateway.user.# --exchange=gateway --queue=guardqueue --job=common
+php artisan event:listen gateway.user.# --exchange=gateway --queue=guardqueue --job=external
 ```  
 Will listen to all "gateway.user.*" events in exchange gateway and with queue name "guardqueue"  
   
