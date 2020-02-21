@@ -1,6 +1,5 @@
 # Laravel PubSub Library  
-Laravel pub/sub library allows you to publish, consume and process rabbit events. It also allows you to listen to default
-laravel events.  
+Laravel pub/sub library allows you to publish, consume and process rabbit events.
   
 # Installation  
 ```bash  
@@ -113,21 +112,20 @@ return [
 ```  
   
 ## Usage
-You can listen for RabbitMQ events and for laravel built in events with the same command ```php artisan event:listen```. How does the library
-understands which type of events to listen? It's pretty simple it is switched with the flag ```--job```, e.g.
+You can listen for RabbitMQ events and publish them.
 
-Laravel events should be listened with the --job=laravel flag
+--job=laravel flag should be used if you want to listen to inter project events but from rabbitmq queue.
 ```bash
 php artisan event:listen --job=laravel
 ```
 
-RabbitMQ events should be listened with the --job=external flag
+--job=laravel flag should be used for intermicroservice communictaion.
 ```bash
 php artisan event:listen --job=external
 ```
 
 ### Examples
-#### Single event  
+#### Single event
 ```bash
 php artisan event:listen gateway.user.authenticated --job=external
 ```  
@@ -140,7 +138,7 @@ php artisan event:listen gateway.user.# --exchange=gateway --queue=guardqueue --
 ```  
 Will listen to all "gateway.user.*" events in exchange gateway and with queue name "guardqueue"  
   
-#### Standard Laravel event
+#### Interproject communictaion
 ```bash  
 php artisan event:listen
 ```  
@@ -173,7 +171,7 @@ connection=rabbitmq                        : The name of the queue connection to
 --prefetch-count=1                         : [RabbitMQ Doc](https://www.rabbitmq.com/consumer-prefetch.html)  |
 ```  
   
-## How to publish messages
+## How to publish events
 ### For laravel default way see the laravel documentation
 https://laravel.com/
 
