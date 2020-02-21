@@ -48,4 +48,14 @@ abstract class SendToRabbitMQAbstract implements SendToRabbitMQInterface
     {
         return get_object_vars($this);
     }
+
+    /**
+     * Get event name, by default the class name of the event
+     *
+     * @return string
+     */
+    public function getEventName(): string
+    {
+        return last(explode('\\', static::class));
+    }
 }
