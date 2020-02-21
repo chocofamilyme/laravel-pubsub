@@ -20,7 +20,7 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
  *
  * @package Chocofamilyme\LaravelPubSub\Queue\Jobs
  */
-class RabbitMQCommon extends RabbitMQLaravel
+class RabbitMQExternal extends RabbitMQLaravel
 {
     /**
      * @var EventRouter
@@ -63,7 +63,7 @@ class RabbitMQCommon extends RabbitMQLaravel
     {
         $payload = $this->payload();
 
-        $listeners = $this->eventRouter->getListeners($this->message->delivery_info['routing_key']);
+        $listeners = $this->eventRouter->getListeners($this->getName());
 
         foreach ($listeners as $listener) {
             [$class, $method] = Str::parseCallback($listener, 'handle');
@@ -78,6 +78,6 @@ class RabbitMQCommon extends RabbitMQLaravel
      */
     public function getName(): ?string
     {
-        return $this->payload()['job'] ?? Arr::get($this->message->delivery_info, 'routing_key');
+        return $this->payload()['_event'] ?? Arr::get($this->message->delivery_info, 'routing_key');
     }
 }
