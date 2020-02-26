@@ -6,10 +6,10 @@
 
 namespace Chocofamilyme\LaravelPubSub\Queue\Jobs;
 
+use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
 use Illuminate\Container\Container;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use PhpAmqpLib\Message\AMQPMessage;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
@@ -27,15 +27,19 @@ class RabbitMQExternal extends RabbitMQLaravel
      */
     protected $eventRouter;
 
+    /** @var CallQueuedHandler  */
+    protected $queueHandler;
+
     /**
      * ListenerMQJob constructor.
      *
-     * @param Container     $container
-     * @param RabbitMQQueue $rabbitmq
-     * @param AMQPMessage   $message
-     * @param string        $connectionName
-     * @param string        $queue
-     * @param EventRouter   $eventRouter
+     * @param Container         $container
+     * @param RabbitMQQueue     $rabbitmq
+     * @param AMQPMessage       $message
+     * @param string            $connectionName
+     * @param string            $queue
+     * @param EventRouter       $eventRouter
+     * @param CallQueuedHandler $queueHandler
      */
     public function __construct(
         Container $container,
@@ -43,7 +47,8 @@ class RabbitMQExternal extends RabbitMQLaravel
         AMQPMessage $message,
         string $connectionName,
         string $queue,
-        EventRouter $eventRouter
+        EventRouter $eventRouter,
+        CallQueuedHandler $queueHandler
     ) {
         parent::__construct(
             $container,
@@ -53,7 +58,8 @@ class RabbitMQExternal extends RabbitMQLaravel
             $queue
         );
 
-        $this->eventRouter = $eventRouter;
+        $this->eventRouter  = $eventRouter;
+        $this->queueHandler = $queueHandler;
     }
 
     /**
@@ -62,12 +68,10 @@ class RabbitMQExternal extends RabbitMQLaravel
     public function fire()
     {
         $payload = $this->payload();
-
         $listeners = $this->eventRouter->getListeners($this->getName());
 
         foreach ($listeners as $listener) {
-            [$class, $method] = Str::parseCallback($listener, 'handle');
-            ($this->instance = $this->resolve($class))->{$method}($payload);
+            $this->queueHandler->call($this, $listener, $payload);
         }
     }
 

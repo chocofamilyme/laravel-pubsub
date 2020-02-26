@@ -3,10 +3,14 @@
 namespace Chocofamilyme\LaravelPubSub\Queue\Factory;
 
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
+use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQExternal;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQLaravel;
 use Illuminate\Container\Container;
+use Illuminate\Contracts\Bus\Dispatcher;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Queue\Job as JobContract;
+use InvalidArgumentException;
 use PhpAmqpLib\Message\AMQPMessage;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
@@ -25,6 +29,7 @@ class RabbitMQFactory
      * @param string        $queue
      *
      * @return JobContract
+     * @throws BindingResolutionException
      */
     public static function make(
         string $jobType,
@@ -41,7 +46,11 @@ class RabbitMQFactory
                 $message,
                 $connectionName,
                 $queue,
-                new EventRouter()
+                new EventRouter(),
+                new CallQueuedHandler(
+                    $container->make(Dispatcher::class),
+                    $container
+                )
             );
         } elseif ($jobType == 'laravel') {
             return new RabbitMQLaravel(
@@ -53,6 +62,6 @@ class RabbitMQFactory
             );
         }
 
-        throw new \InvalidArgumentException('Handler not found', 404);
+        throw new InvalidArgumentException('Handler not found', 404);
     }
 }
