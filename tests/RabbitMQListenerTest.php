@@ -8,7 +8,9 @@ namespace Chocofamily\LaravelPubSub\Tests;
 
 use Chocofamily\LaravelPubSub\Tests\TestClasses\TestListener;
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
+use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQExternal;
+use Illuminate\Contracts\Bus\Dispatcher;
 use PhpAmqpLib\Message\AMQPMessage;
 use ReflectionClass;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
@@ -45,7 +47,11 @@ class RabbitMQListenerTest extends TestCase
             $message,
             'rabbitmq',
             'test',
-            new EventRouter()
+            new EventRouter(),
+            new CallQueuedHandler(
+                $this->app->make(Dispatcher::class),
+                $this->app
+            )
         );
 
         $rabbitMQListener->fire();
@@ -68,7 +74,11 @@ class RabbitMQListenerTest extends TestCase
             $message,
             'rabbitmq',
             'test',
-            new EventRouter()
+            new EventRouter(),
+            new CallQueuedHandler(
+                $this->app->make(Dispatcher::class),
+                $this->app
+            )
         );
 
         $this->assertEquals('test.route', $rabbitMQListener->getName());
@@ -90,7 +100,11 @@ class RabbitMQListenerTest extends TestCase
             $message,
             'rabbitmq',
             'test',
-            new EventRouter()
+            new EventRouter(),
+            new CallQueuedHandler(
+                $this->app->make(Dispatcher::class),
+                $this->app
+            )
         );
 
         $this->assertEquals($eventName, $rabbitMQListener->getName());
