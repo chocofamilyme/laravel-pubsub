@@ -16,22 +16,22 @@ class CallQueuedHandler
     /**
      * The bus dispatcher implementation.
      *
-     * @var \Illuminate\Contracts\Bus\Dispatcher
+     * @var Dispatcher
      */
     protected $dispatcher;
 
     /**
      * The container instance.
      *
-     * @var \Illuminate\Contracts\Container\Container
+     * @var Container
      */
     protected $container;
 
     /**
      * Create a new handler instance.
      *
-     * @param \Illuminate\Contracts\Bus\Dispatcher      $dispatcher
-     * @param \Illuminate\Contracts\Container\Container $container
+     * @param Dispatcher $dispatcher
+     * @param Container  $container
      *
      * @return void
      */
@@ -44,12 +44,13 @@ class CallQueuedHandler
     /**
      * Handle the queued job.
      *
-     * @param \Illuminate\Contracts\Queue\Job $job
-     * @param array                           $data
+     * @param Job    $job
+     * @param string $listener
+     * @param array  $data
      *
      * @return void
      */
-    public function call(Job $job, string $listener, array $data)
+    public function call(Job $job, string $listener, $data)
     {
         try {
             $listener = $this->container->make($listener);
@@ -71,8 +72,9 @@ class CallQueuedHandler
     /**
      * Dispatch the given job / command through its specified middleware.
      *
-     * @param \Illuminate\Contracts\Queue\Job $job
-     * @param mixed                           $command
+     * @param Job                             $job
+     * @param                                 $listener
+     * @param                                 $data
      *
      * @return mixed
      */
@@ -90,8 +92,8 @@ class CallQueuedHandler
     /**
      * Set the job instance of the given class if necessary.
      *
-     * @param \Illuminate\Contracts\Queue\Job $job
-     * @param mixed                           $instance
+     * @param Job   $job
+     * @param mixed $instance
      *
      * @return mixed
      */
@@ -121,8 +123,8 @@ class CallQueuedHandler
     /**
      * Handle a model not found exception.
      *
-     * @param \Illuminate\Contracts\Queue\Job $job
-     * @param \Exception                      $e
+     * @param Job       $job
+     * @param Exception $e
      *
      * @return void
      */
@@ -149,8 +151,8 @@ class CallQueuedHandler
      *
      * The exception that caused the failure will be passed.
      *
-     * @param array      $data
-     * @param \Exception $e
+     * @param array     $data
+     * @param Exception $e
      *
      * @return void
      */

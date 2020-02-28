@@ -6,6 +6,7 @@
 
 namespace Chocofamilyme\LaravelPubSub\Queue\Jobs;
 
+use Chocofamilyme\LaravelPubSub\Exceptions\NotFoundListenerException;
 use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
 use Illuminate\Container\Container;
@@ -63,7 +64,7 @@ class RabbitMQExternal extends RabbitMQLaravel
     }
 
     /**
-     * @throws \Chocofamilyme\LaravelPubSub\Exceptions\NotFoundListenerException
+     * @throws NotFoundListenerException
      */
     public function fire()
     {
