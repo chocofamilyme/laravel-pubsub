@@ -28,9 +28,6 @@ class RabbitMQExternal extends RabbitMQLaravel
      */
     protected $eventRouter;
 
-    /** @var CallQueuedHandler  */
-    protected $queueHandler;
-
     /**
      * ListenerMQJob constructor.
      *
@@ -59,8 +56,8 @@ class RabbitMQExternal extends RabbitMQLaravel
             $queue
         );
 
-        $this->eventRouter  = $eventRouter;
-        $this->queueHandler = $queueHandler;
+        $this->eventRouter = $eventRouter;
+        $this->instance    = $queueHandler;
     }
 
     /**
@@ -68,11 +65,11 @@ class RabbitMQExternal extends RabbitMQLaravel
      */
     public function fire()
     {
-        $payload = $this->payload();
+        $payload   = $this->payload();
         $listeners = $this->eventRouter->getListeners($this->getName());
 
         foreach ($listeners as $listener) {
-            $this->queueHandler->call($this, $listener, $payload);
+            $this->instance->call($this, $listener, $payload);
         }
     }
 

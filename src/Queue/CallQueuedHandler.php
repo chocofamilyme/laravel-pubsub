@@ -6,11 +6,16 @@ use Exception;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Queue\Job;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pipeline\Pipeline;
+use Illuminate\Queue\InteractsWithQueue;
 use ReflectionClass;
 use Illuminate\Contracts\Container\BindingResolutionException;
 
+/**
+ * Class CallQueuedHandler
+ *
+ * @package Chocofamilyme\LaravelPubSub\Queue
+ */
 class CallQueuedHandler
 {
     /**
@@ -55,7 +60,7 @@ class CallQueuedHandler
         try {
             $listener = $this->container->make($listener);
         } catch (BindingResolutionException $e) {
-            return $this->handleModelNotFound($job, $e);
+            $this->handleModelNotFound($job, $e);
         }
 
         $this->dispatchThroughMiddleware($job, $listener, $data);
@@ -140,10 +145,10 @@ class CallQueuedHandler
         }
 
         if ($shouldDelete) {
-            return $job->delete();
+            $job->delete();
         }
 
-        return $job->fail($e);
+        $job->fail($e);
     }
 
     /**

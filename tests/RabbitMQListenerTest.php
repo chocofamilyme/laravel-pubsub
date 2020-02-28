@@ -18,6 +18,9 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 class RabbitMQListenerTest extends TestCase
 {
 
+    /** @var RabbitMQQueue $rabbitmq */
+    private $rabbitmq;
+
     public function setUp(): void
     {
         parent::setUp();
@@ -30,6 +33,9 @@ class RabbitMQListenerTest extends TestCase
         );
 
         $this->app['config']->set('queue', require __DIR__.'/config/queue.php');
+
+        $this->rabbitmq  = $this->createMock(RabbitMQQueue::class);
+        $this->rabbitmq->method('ack');
     }
 
     public function testItFire()
@@ -39,11 +45,9 @@ class RabbitMQListenerTest extends TestCase
 
         $message->delivery_info['routing_key'] = 'test.route';
 
-        $rabbitmq = (new ReflectionClass(RabbitMQQueue::class))->newInstanceWithoutConstructor();
-
         $rabbitMQListener = new RabbitMQExternal(
             $this->app,
-            $rabbitmq,
+            $this->rabbitmq,
             $message,
             'rabbitmq',
             'test',
@@ -56,7 +60,7 @@ class RabbitMQListenerTest extends TestCase
 
         $rabbitMQListener->fire();
 
-        $this->assertEquals(TestListener::class, get_class($rabbitMQListener->getResolvedJob()));
+        $this->assertEquals(CallQueuedHandler::class, get_class($rabbitMQListener->getResolvedJob()));
     }
 
     public function testGetNameOldFormat()
@@ -66,11 +70,9 @@ class RabbitMQListenerTest extends TestCase
 
         $message->delivery_info['routing_key'] = 'test.route';
 
-        $rabbitmq = (new ReflectionClass(RabbitMQQueue::class))->newInstanceWithoutConstructor();
-
         $rabbitMQListener = new RabbitMQExternal(
             $this->app,
-            $rabbitmq,
+            $this->rabbitmq,
             $message,
             'rabbitmq',
             'test',
@@ -92,11 +94,9 @@ class RabbitMQListenerTest extends TestCase
 
         $message->delivery_info['routing_key'] = 'test.route';
 
-        $rabbitmq = (new ReflectionClass(RabbitMQQueue::class))->newInstanceWithoutConstructor();
-
         $rabbitMQListener = new RabbitMQExternal(
             $this->app,
-            $rabbitmq,
+            $this->rabbitmq,
             $message,
             'rabbitmq',
             'test',
