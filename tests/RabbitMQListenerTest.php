@@ -8,13 +8,18 @@ namespace Chocofamily\LaravelPubSub\Tests;
 
 use Chocofamily\LaravelPubSub\Tests\TestClasses\TestListener;
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
+use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQExternal;
+use Illuminate\Contracts\Bus\Dispatcher;
 use PhpAmqpLib\Message\AMQPMessage;
 use ReflectionClass;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
 class RabbitMQListenerTest extends TestCase
 {
+
+    /** @var RabbitMQQueue $rabbitmq */
+    private $rabbitmq;
 
     public function setUp(): void
     {
@@ -28,6 +33,9 @@ class RabbitMQListenerTest extends TestCase
         );
 
         $this->app['config']->set('queue', require __DIR__.'/config/queue.php');
+
+        $this->rabbitmq  = $this->createMock(RabbitMQQueue::class);
+        $this->rabbitmq->method('ack');
     }
 
     public function testItFire()
@@ -37,20 +45,22 @@ class RabbitMQListenerTest extends TestCase
 
         $message->delivery_info['routing_key'] = 'test.route';
 
-        $rabbitmq = (new ReflectionClass(RabbitMQQueue::class))->newInstanceWithoutConstructor();
-
         $rabbitMQListener = new RabbitMQExternal(
             $this->app,
-            $rabbitmq,
+            $this->rabbitmq,
             $message,
             'rabbitmq',
             'test',
-            new EventRouter()
+            new EventRouter(),
+            new CallQueuedHandler(
+                $this->app->make(Dispatcher::class),
+                $this->app
+            )
         );
 
         $rabbitMQListener->fire();
 
-        $this->assertEquals(TestListener::class, get_class($rabbitMQListener->getResolvedJob()));
+        $this->assertEquals(CallQueuedHandler::class, get_class($rabbitMQListener->getResolvedJob()));
     }
 
     public function testGetNameOldFormat()
@@ -60,15 +70,17 @@ class RabbitMQListenerTest extends TestCase
 
         $message->delivery_info['routing_key'] = 'test.route';
 
-        $rabbitmq = (new ReflectionClass(RabbitMQQueue::class))->newInstanceWithoutConstructor();
-
         $rabbitMQListener = new RabbitMQExternal(
             $this->app,
-            $rabbitmq,
+            $this->rabbitmq,
             $message,
             'rabbitmq',
             'test',
-            new EventRouter()
+            new EventRouter(),
+            new CallQueuedHandler(
+                $this->app->make(Dispatcher::class),
+                $this->app
+            )
         );
 
         $this->assertEquals('test.route', $rabbitMQListener->getName());
@@ -82,15 +94,17 @@ class RabbitMQListenerTest extends TestCase
 
         $message->delivery_info['routing_key'] = 'test.route';
 
-        $rabbitmq = (new ReflectionClass(RabbitMQQueue::class))->newInstanceWithoutConstructor();
-
         $rabbitMQListener = new RabbitMQExternal(
             $this->app,
-            $rabbitmq,
+            $this->rabbitmq,
             $message,
             'rabbitmq',
             'test',
-            new EventRouter()
+            new EventRouter(),
+            new CallQueuedHandler(
+                $this->app->make(Dispatcher::class),
+                $this->app
+            )
         );
 
         $this->assertEquals($eventName, $rabbitMQListener->getName());
