@@ -45,7 +45,7 @@ return [
                 ],
 
                 'message-ttl' => 0,
-                'heartbeat'   => 0,
+                'heartbeat'   => 60,
 
                 'queue' => [
                     'declare' => false,

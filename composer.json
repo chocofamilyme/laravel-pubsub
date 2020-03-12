@@ -16,7 +16,7 @@
     }
   ],
   "require": {
-    "php": ">= 7.1",
+    "php": "^7.2",
     "ext-json": "*",
     "vladimir-yuldashev/laravel-queue-rabbitmq": "~10.1"
   },
@@ -40,8 +40,10 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Chocofamilyme\\LaravelPubSub\\Providers\\PubSubServiceProvider",
-        "VladimirYuldashev\\LaravelQueueRabbitMQ\\LaravelQueueRabbitMQServiceProvider"
+        "Chocofamilyme\\LaravelPubSub\\Providers\\PubSubServiceProvider"
+      ],
+      "dont-discover": [
+        "vladimir-yuldashev/laravel-queue-rabbitmq"
       ]
     }
   },
