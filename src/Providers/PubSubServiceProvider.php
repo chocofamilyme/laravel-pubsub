@@ -6,19 +6,28 @@ use Chocofamilyme\LaravelPubSub\Amqp\Amqp;
 use Chocofamilyme\LaravelPubSub\Commands\EventListenCommand;
 use Chocofamilyme\LaravelPubSub\Events\Dispatcher;
 use Chocofamilyme\LaravelPubSub\Listener;
+use Chocofamilyme\LaravelPubSub\Queue\Connectors\RabbitMQConnector;
 use Illuminate\Contracts\Debug\ExceptionHandler;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Queue\QueueManager;
 use Illuminate\Contracts\Queue\Factory as QueueFactoryContract;
+use VladimirYuldashev\LaravelQueueRabbitMQ\LaravelQueueRabbitMQServiceProvider;
 
-class PubSubServiceProvider extends ServiceProvider
+/**
+ * Class PubSubServiceProvider
+ *
+ * @package Chocofamilyme\LaravelPubSub\Providers
+ */
+class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
 {
     /**
      * Register services.
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
+        parent::register();
+
         // Merge our config with application config
         $this->mergeConfigFrom(
             __DIR__.'/../config/queue.php', 'queue'
@@ -66,7 +75,7 @@ class PubSubServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot()
+    public function boot(): void
     {
         // Config
         $this->publishes([
@@ -81,6 +90,13 @@ class PubSubServiceProvider extends ServiceProvider
         if (!class_exists('Amqp')) {
             class_alias(\Chocofamilyme\LaravelPubSub\Amqp\AmqpFacade::class, 'Amqp');
         }
+
+        /** @var QueueManager $queue */
+        $queue = $this->app['queue'];
+
+        $queue->addConnector('rabbitmq', function () {
+            return new RabbitMQConnector($this->app['events']);
+        });
     }
 
     /**
