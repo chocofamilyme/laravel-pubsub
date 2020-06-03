@@ -82,4 +82,8 @@ class RabbitMQExternal extends RabbitMQLaravel
     {
         return $this->payload()['_event'] ?? Arr::get($this->message->delivery_info, 'routing_key');
     }
+
+    public function failed($e)
+    {
+    }
 }
