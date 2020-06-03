@@ -63,6 +63,8 @@ class CallQueuedHandler
             $this->handleModelNotFound($job, $e);
         }
 
+        $listener = $this->setJobInstanceIfNecessary($job, $listener);
+
         $this->dispatchThroughMiddleware($job, $listener, $data);
 
         if (!$job->hasFailed() && !$job->isReleased()) {
