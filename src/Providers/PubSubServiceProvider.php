@@ -38,10 +38,11 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->app->singleton('rabbitmq.listener', function () {
-                $isDownForMaintenance = function () {
+                $isDownForMaintenance = function (): bool {
                     return $this->app->isDownForMaintenance();
                 };
 
+                /** @psalm-suppress UndefinedInterfaceMethod */
                 return new Listener(
                     $this->app['queue'],
                     $this->app['events'],
@@ -91,10 +92,14 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
             class_alias(\Chocofamilyme\LaravelPubSub\Amqp\AmqpFacade::class, 'Amqp');
         }
 
-        /** @var QueueManager $queue */
+        /**
+         * @var QueueManager $queue
+         * @psalm-suppress UndefinedInterfaceMethod
+         */
         $queue = $this->app['queue'];
 
         $queue->addConnector('rabbitmq', function () {
+            /** @psalm-suppress UndefinedInterfaceMethod */
             return new RabbitMQConnector($this->app['events']);
         });
     }

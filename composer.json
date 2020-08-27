@@ -25,7 +25,8 @@
     "mockery/mockery": "^1.1",
     "orchestra/testbench": "^4.0",
     "sempro/phpunit-pretty-print": "^1.0",
-    "squizlabs/php_codesniffer": "^3.0"
+    "squizlabs/php_codesniffer": "^3.0",
+    "vimeo/psalm": "^3.14"
   },
   "autoload": {
     "psr-4": {

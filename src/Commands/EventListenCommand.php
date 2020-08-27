@@ -46,8 +46,11 @@ class EventListenCommand extends ConsumeCommand
      */
     public function handle(): void
     {
+        /** @var string $eventName */
         $eventName = $this->argument('event');
+        /** @var string $exchange */
         $exchange  = $this->option('exchange') ?? '';
+        /** @var string $queueName */
         $queueName = $this->option('queue') ?? config('queue.connections.rabbitmq.queue');
 
         $this->info("Start listening event $eventName on exchange $exchange, queue name is $queueName");
@@ -60,10 +63,15 @@ class EventListenCommand extends ConsumeCommand
             $listener->setRoutes(explode(':', $eventName));
         }
 
-        $listener->setExchangeType($this->option('exchange_type'));
-        $listener->setExclusive($this->option('exclusive'));
-        $listener->setConsumerExclusive($this->option('consumer_exclusive'));
-        $listener->setJob($this->option('job'));
+        /** @var string $job */
+        $job = $this->option('job');
+        /** @var string $exchangeType */
+        $exchangeType = $this->option('exchange_type');
+
+        $listener->setExchangeType($exchangeType);
+        $listener->setExclusive((bool)$this->option('exclusive'));
+        $listener->setConsumerExclusive((bool)$this->option('consumer_exclusive'));
+        $listener->setJob($job);
         $listener->setMessageTtl(config('queue.connections.rabbitmq.options.message-ttl', 0));
         $listener->setWaitNonBlockin((bool) $this->option('wait_non_blocking'));
 

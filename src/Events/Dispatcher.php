@@ -24,11 +24,11 @@ class Dispatcher extends BaseDispatcher
     {
         if ($this->shouldBeSentToRabbitMQ($event)) {
 
+            /** @var SendToRabbitMQAbstract $event */
             // Append _event to payload, it's the name of the event class
             $eventPublicProperties = $event->getPublicProperties();
             $eventPublicProperties['_event'] = $event->getEventName();
 
-            /** @var SendToRabbitMQAbstract $event */
             $this->container->get('Amqp')->publish($event->getRoutingKey(), json_encode($eventPublicProperties), [
                     'exchange' => [
                         'name' => $event->getExchange(),
