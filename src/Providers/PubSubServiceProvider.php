@@ -3,13 +3,16 @@
 namespace Chocofamilyme\LaravelPubSub\Providers;
 
 use Chocofamilyme\LaravelPubSub\Amqp\Amqp;
+use Chocofamilyme\LaravelPubSub\Amqp\AmqpFacade;
 use Chocofamilyme\LaravelPubSub\Commands\EventListenCommand;
 use Chocofamilyme\LaravelPubSub\Events\Dispatcher;
 use Chocofamilyme\LaravelPubSub\Listener;
 use Chocofamilyme\LaravelPubSub\Queue\Connectors\RabbitMQConnector;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Contracts\Queue\Factory as QueueFactoryContract;
+use Illuminate\Support\Collection;
 use VladimirYuldashev\LaravelQueueRabbitMQ\LaravelQueueRabbitMQServiceProvider;
 
 /**
@@ -30,10 +33,10 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
 
         // Merge our config with application config
         $this->mergeConfigFrom(
-            __DIR__.'/../config/queue.php', 'queue'
+            __DIR__ . '/../config/queue.php', 'queue'
         );
         $this->mergeConfigFrom(
-            __DIR__.'/../config/pubsub.php', 'pubsub'
+            __DIR__ . '/../config/pubsub.php', 'pubsub'
         );
 
         if ($this->app->runningInConsole()) {
@@ -80,8 +83,11 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
     {
         // Config
         $this->publishes([
-            __DIR__.'/../config/pubsub.php' => config_path('pubsub.php'),
+            __DIR__ . '/../config/pubsub.php' => config_path('pubsub.php'),
         ]);
+        $this->publishes([
+            __DIR__ . '/../database/migrations/create_pubsub_events_table.php.stub' => $this->getMigrationFileName(),
+        ], 'migrations');
 
         // Add class and it's facade
         $this->app->bind('Amqp', function ($app) {
@@ -89,7 +95,7 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
         });
 
         if (!class_exists('Amqp')) {
-            class_alias(\Chocofamilyme\LaravelPubSub\Amqp\AmqpFacade::class, 'Amqp');
+            class_alias(AmqpFacade::class, 'Amqp');
         }
 
         /**
@@ -104,11 +110,30 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
         });
     }
 
-    /**
-     *
-     */
     public function provides()
     {
         return ['Amqp'];
+    }
+
+    /**
+     * Returns existing migration file if found, else uses the current timestamp.
+     *
+     * @return string
+     */
+    protected function getMigrationFileName(): string
+    {
+        /**
+         * @var Filesystem $filesystem
+         * @psalm-suppress UndefinedInterfaceMethod
+         */
+        $filesystem = $this->app['filesystem'];
+
+        $timestamp = date('Y_m_d_His');
+
+        return Collection::make($this->app->databasePath() . DIRECTORY_SEPARATOR . 'migrations' . DIRECTORY_SEPARATOR)
+            ->flatMap(function ($path) use ($filesystem) {
+                return $filesystem->glob($path . '*_create_pubusb_events_table.php');
+            })->push($this->app->databasePath() . "/migrations/{$timestamp}_create_pubusb_events_table.php")
+            ->first();
     }
 }

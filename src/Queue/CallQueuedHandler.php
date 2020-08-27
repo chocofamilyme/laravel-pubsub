@@ -20,17 +20,13 @@ class CallQueuedHandler
 {
     /**
      * The bus dispatcher implementation.
-     *
-     * @var Dispatcher
      */
-    protected $dispatcher;
+    protected Dispatcher $dispatcher;
 
     /**
      * The container instance.
-     *
-     * @var Container
      */
-    protected $container;
+    protected Container $container;
 
     /**
      * Create a new handler instance.
@@ -55,7 +51,7 @@ class CallQueuedHandler
      *
      * @return void
      */
-    public function call(Job $job, string $listener, $data)
+    public function call(Job $job, string $listener, $data): void
     {
         try {
             $listener = $this->container->make($listener);

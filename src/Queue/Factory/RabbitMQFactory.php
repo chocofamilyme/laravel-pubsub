@@ -39,7 +39,7 @@ class RabbitMQFactory
         string $connectionName,
         string $queue
     ): JobContract {
-        if ($jobType == 'external') {
+        if ($jobType === 'external') {
             return new RabbitMQExternal(
                 $container,
                 $rabbitmq,
@@ -52,7 +52,9 @@ class RabbitMQFactory
                     $container
                 )
             );
-        } elseif ($jobType == 'laravel') {
+        }
+
+        if ($jobType === 'laravel') {
             return new RabbitMQLaravel(
                 $container,
                 $rabbitmq,

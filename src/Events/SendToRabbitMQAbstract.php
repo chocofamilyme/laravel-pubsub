@@ -44,7 +44,7 @@ abstract class SendToRabbitMQAbstract implements SendToRabbitMQInterface
      *
      * @return array
      */
-    public function getPublicProperties(): array
+    public function getPayload(): array
     {
         return get_object_vars($this);
     }
@@ -54,8 +54,8 @@ abstract class SendToRabbitMQAbstract implements SendToRabbitMQInterface
      *
      * @return string
      */
-    public function getEventName(): string
+    public function getName(): string
     {
-        return last(explode('\\', static::class));
+        return class_basename(static::class);
     }
 }
