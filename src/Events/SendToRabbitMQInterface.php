@@ -32,9 +32,11 @@ interface SendToRabbitMQInterface
 
     public function getName(): string;
 
-    public function getId(): string;
+    public function getEventId(): string;
 
     public function getPayload(): array;
 
-    public function getCreatedAt(): string;
+    public function getEventCreatedAt(): string;
+
+    public function prepare(): void;
 }

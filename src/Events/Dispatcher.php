@@ -49,14 +49,16 @@ class Dispatcher extends BaseDispatcher
     {
         $durable = $event instanceof DurableEvent;
 
+        $event->prepare();
+
         $model = new EventModel([
-            'id'          => $event->getId(),
+            'id'          => $event->getEventId(),
             'type'        => EventModel::TYPE_PUB,
             'name'        => $event->getName(),
             'payload'     => $event->getPayload(),
             'exchange'    => $event->getExchange(),
             'routing_key' => $event->getRoutingKey(),
-            'created_at'  => $event->getCreatedAt(),
+            'created_at'  => $event->getEventCreatedAt(),
         ]);
 
         if ($durable) {
