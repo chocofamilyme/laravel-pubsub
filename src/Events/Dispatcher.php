@@ -2,6 +2,7 @@
 
 namespace Chocofamilyme\LaravelPubSub\Events;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Events\Dispatcher as BaseDispatcher;
 
 /**
@@ -23,20 +24,9 @@ class Dispatcher extends BaseDispatcher
     public function dispatch($event, $payload = [], $halt = false)
     {
         if ($this->shouldBeSentToRabbitMQ($event)) {
+            /** @var PublishEvent $event */
+            $this->sendPublishEvent($event);
 
-            // Append _event to payload, it's the name of the event class
-            $eventPublicProperties = $event->getPublicProperties();
-            $eventPublicProperties['_event'] = $event->getEventName();
-
-            /** @var SendToRabbitMQAbstract $event */
-            $this->container->get('Amqp')->publish($event->getRoutingKey(), json_encode($eventPublicProperties), [
-                    'exchange' => [
-                        'name' => $event->getExchange(),
-                        'type' => $event->getExchangeType(),
-                    ],
-                    'headers' => $event->getHeaders()
-                ]
-            );
             return null;
         }
 
@@ -53,5 +43,50 @@ class Dispatcher extends BaseDispatcher
     private function shouldBeSentToRabbitMQ($event): bool
     {
         return $event instanceof SendToRabbitMQInterface;
+    }
+
+    /**
+     * @param SendToRabbitMQInterface $event
+     */
+    private function sendPublishEvent(SendToRabbitMQInterface $event): void
+    {
+        $durable = $event instanceof DurableEvent;
+
+        $event->prepare();
+
+        $model = new EventModel([
+            'id'          => $event->getEventId(),
+            'type'        => EventModel::TYPE_PUB,
+            'name'        => $event->getName(),
+            'payload'     => $event->getPayload(),
+            'exchange'    => $event->getExchange(),
+            'routing_key' => $event->getRoutingKey(),
+            'created_at'  => $event->getEventCreatedAt(),
+        ]);
+
+        if ($durable) {
+            $model->save();
+        }
+
+        try {
+            $eventPayload = $event->getPayload();
+            $eventPayload['_event'] = $event->getName();
+
+            $this->container->get('Amqp')->publish($event->getRoutingKey(), json_encode($eventPayload), [
+                    'exchange' => [
+                        'name' => $event->getExchange(),
+                        'type' => $event->getExchangeType(),
+                    ],
+                    'headers' => $event->getHeaders()
+                ]
+            );
+
+            if ($durable) {
+                $model->processed_at = CarbonImmutable::now();
+                $model->save();
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }

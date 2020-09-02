@@ -16,7 +16,7 @@
     }
   ],
   "require": {
-    "php": "^7.2",
+    "php": "^7.4",
     "ext-json": "*",
     "vladimir-yuldashev/laravel-queue-rabbitmq": "~10.1"
   },
@@ -25,7 +25,8 @@
     "mockery/mockery": "^1.1",
     "orchestra/testbench": "^4.0",
     "sempro/phpunit-pretty-print": "^1.0",
-    "squizlabs/php_codesniffer": "^3.0"
+    "squizlabs/php_codesniffer": "^3.0",
+    "vimeo/psalm": "^3.14"
   },
   "autoload": {
     "psr-4": {
@@ -50,10 +51,12 @@
   "scripts": {
     "test": [
       "@test:style",
-      "@test:unit"
+      "@test:unit",
+      "@test:psalm"
     ],
     "test:style": "@php vendor/bin/phpcs",
-    "test:unit": "@php vendor/bin/phpunit"
+    "test:unit": "@php vendor/bin/phpunit",
+    "test:psalm": "@php vendor/bin/psalm"
   },
   "minimum-stability": "dev",
   "prefer-stable": true

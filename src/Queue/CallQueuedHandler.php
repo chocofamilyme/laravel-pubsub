@@ -20,17 +20,13 @@ class CallQueuedHandler
 {
     /**
      * The bus dispatcher implementation.
-     *
-     * @var Dispatcher
      */
-    protected $dispatcher;
+    protected Dispatcher $dispatcher;
 
     /**
      * The container instance.
-     *
-     * @var Container
      */
-    protected $container;
+    protected Container $container;
 
     /**
      * Create a new handler instance.
@@ -55,7 +51,7 @@ class CallQueuedHandler
      *
      * @return void
      */
-    public function call(Job $job, string $listener, $data)
+    public function call(Job $job, string $listener, $data): void
     {
         try {
             $listener = $this->container->make($listener);
@@ -80,13 +76,19 @@ class CallQueuedHandler
      * Dispatch the given job / command through its specified middleware.
      *
      * @param Job                             $job
-     * @param                                 $listener
+     * @param class-string|object             $listener
      * @param                                 $data
      *
      * @return mixed
      */
     protected function dispatchThroughMiddleware(Job $job, $listener, $data)
     {
+        /**
+         * @psalm-suppress MissingClosureParamType
+         * @psalm-suppress MissingCLosureReturnType
+         * @psalm-suppress PossiblyInvalidMethodCall
+         * @psalm-suppress PossiblyInvalidPropertyFetch
+         */
         return (new Pipeline($this->container))->send($listener)
             ->through(array_merge(method_exists($listener, 'middleware') ? $listener->middleware() : [],
                 $listener->middleware ?? []))
@@ -137,6 +139,7 @@ class CallQueuedHandler
      */
     protected function handleModelNotFound(Job $job, $e)
     {
+        /** @var class-string $class */
         $class = $job->resolveName();
 
         try {

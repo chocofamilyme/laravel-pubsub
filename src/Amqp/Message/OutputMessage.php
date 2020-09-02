@@ -43,7 +43,7 @@ class OutputMessage implements MessageInterface
     }
 
     /**
-     * @return mixed
+     * @return array
      */
     public function getBody(): array
     {

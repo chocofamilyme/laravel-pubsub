@@ -116,7 +116,7 @@ class Listener extends Consumer
         $this->channel->basic_qos(
             $this->prefetchSize,
             $this->prefetchCount,
-            null
+            false
         );
 
         if ($this->exchange) {
@@ -163,6 +163,7 @@ class Listener extends Consumer
             // if it is we will just pause this worker for a given amount of time and
             // make sure we do not need to kill this worker process off completely.
             if (!$this->daemonShouldRun($options, $connectionName, $queue)) {
+                /** @psalm-suppress PossiblyNullArgument */
                 $this->pauseWorker($options, $lastRestart);
                 continue;
             }
@@ -185,7 +186,7 @@ class Listener extends Consumer
 
                 $this->stopWorkerIfLostConnection($exception);
             } catch (Throwable $exception) {
-                $this->exceptions->report($exception = new ErrorException($exception));
+                $this->exceptions->report($exception = new ErrorException((string)$exception));
 
                 $this->stopWorkerIfLostConnection($exception);
             }
@@ -193,6 +194,7 @@ class Listener extends Consumer
             // Finally, we will check to see if we have exceeded our memory limits or if
             // the queue should restart based on other indications. If so, we'll stop
             // this worker and let whatever is "monitoring" it restart the process.
+            /** @psalm-suppress PossiblyNullArgument */
             $this->stopIfNecessary($options, $lastRestart, null);
         }
     }

@@ -21,6 +21,7 @@ class Amqp
     public function __construct(QueueManager $queue, ?string $connection = null)
     {
         $connection   = $connection ?? config('queue.default');
+        /** @psalm-var RabbitMQQueue */
         $this->rabbit = $queue->connection($connection);
     }
 

@@ -179,18 +179,18 @@ https://laravel.com/
 We've tried to make it easy as possible for you, see how it works:
 1. Create event with ```php artisan make:event```, please aware that the name of your event class will be the event name in the message payload.
 It is then used for internal router ```config/pubsub.php``` 
-2. Open fresh created event and extends from ```Chocofamilyme\LaravelPubSub\Events\SendToRabbitMQAbstract```
-3. You will have to implement a couple of methods like ```getExchange``` and ```getRoutingKey``` these methods tells the dispatcher
-which exchange should be used for this event and which routing key. See? It's pretty self-descriptive.
-4. Since you extendet from ```SendToRabbitMQAbstract``` class you could override more methods which could make the event more precise, for
+2. Open fresh created event and extends from ```Chocofamilyme\LaravelPubSub\Events\PublishEvent```
+3. You will have to override values of constants couple of methods like ```EXCHANGE_NAME```, ```NAME```, ```ROUTING_KEY```. These constants tell the dispatcher
+which exchange should be used for this event and which routing key and name of the event. See? It's pretty self-descriptive.
+4. Since you extended from ```PublishEvent``` class you could override more methods which could make the event more precise, for
 that please see inside this class.
 5. After our event is ready, we now can publish it in laravel way:
 ```php
 event(new UserUpdatedEvent(1, 'Josh'));
 ```
-Since this event extends from SendToRabbitMQAbstract class, it will automatically be sent into rabbitmq.
+Since this event extends from PublishEvent class implementing SendToRabbitMQInterface, it will be sent into rabbitmq automatically.
 
-PS: Please note that all public properties of the event would be used as message payload.
+PS: Please note that you need to override toPayload() method returning array that would be used as message payload.
 
 #### Example event class
 ```php
@@ -198,12 +198,16 @@ PS: Please note that all public properties of the event would be used as message
 
 namespace App\Events;
 
+use Carbon\CarbonImmutable;use Chocofamilyme\LaravelPubSub\Events\PublishEvent;
 use Chocofamilyme\LaravelPubSub\Events\SendToRabbitMQAbstract;
 
-class UserUpdatedEvent extends SendToRabbitMQAbstract
+class UserUpdatedEvent extends PublishEvent
 {
-    public $id;
-    public $name;
+    public int $id;
+    public string $name;
+
+    public const NAME          = 'UserUpdated';
+    public const ROUTING_KEY   = 'user.updated';
 
     /**
      * Create a new event instance.
@@ -217,24 +221,14 @@ class UserUpdatedEvent extends SendToRabbitMQAbstract
         $this->name = $name;
     }
 
-    /**
-     * Get exchange where to publish the message
-     *
-     * @return string|null
-     */
-    public function getExchange(): ?string
+    public function toPayload() : array 
     {
-        return 'user';
-    }
-
-    /**
-     * Get routing key, where the message will be routed
-     *
-     * @return string
-     */
-    public function getRoutingKey(): string
-    {
-        return 'user.updated';
+        return [
+            'user' => [
+                'id' => $this->id,
+                'name' => $this->name
+            ]
+        ];
     }
 }
 ```

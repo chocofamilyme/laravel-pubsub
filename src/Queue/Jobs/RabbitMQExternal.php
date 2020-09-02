@@ -78,8 +78,9 @@ class RabbitMQExternal extends RabbitMQLaravel
      *
      * @return string
      */
-    public function getName(): ?string
+    public function getName(): string
     {
+        /** @psalm-suppress InternalProperty */
         return $this->payload()['_event'] ?? Arr::get($this->message->delivery_info, 'routing_key');
     }
 
