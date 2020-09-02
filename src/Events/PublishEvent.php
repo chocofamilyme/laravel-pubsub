@@ -25,6 +25,7 @@ abstract class PublishEvent implements SendToRabbitMQInterface
 
     public function prepare(): void
     {
+        /** @psalm-suppress TypeDoesNotContainType */
         if (static::EXCHANGE_NAME === self::EXCHANGE_NAME ||
             static::NAME === self::NAME ||
             static::ROUTING_KEY === self::ROUTING_KEY) {
