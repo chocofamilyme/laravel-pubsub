@@ -45,6 +45,9 @@ class Dispatcher extends BaseDispatcher
         return $event instanceof SendToRabbitMQInterface;
     }
 
+    /**
+     * @param SendToRabbitMQInterface $event
+     */
     private function sendPublishEvent(SendToRabbitMQInterface $event): void
     {
         $durable = $event instanceof DurableEvent;

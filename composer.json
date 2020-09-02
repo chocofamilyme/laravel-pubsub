@@ -51,10 +51,12 @@
   "scripts": {
     "test": [
       "@test:style",
-      "@test:unit"
+      "@test:unit",
+      "@test:psalm"
     ],
     "test:style": "@php vendor/bin/phpcs",
-    "test:unit": "@php vendor/bin/phpunit"
+    "test:unit": "@php vendor/bin/phpunit",
+    "test:psalm": "@php vendor/bin/psalm"
   },
   "minimum-stability": "dev",
   "prefer-stable": true

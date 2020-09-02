@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Chocofamilyme\LaravelPubSub\Events;
 
 use Carbon\CarbonImmutable;
+use Chocofamilyme\LaravelPubSub\Exceptions\InvalidEventDeclarationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -15,15 +16,21 @@ use Illuminate\Support\Str;
  */
 abstract class PublishEvent implements SendToRabbitMQInterface
 {
-    protected const EXCHANGE_NAME   = 'exchange';
-    protected const NAME            = 'name';
-    protected const ROUTING_KEY     = 'routing.key';
+    protected const EXCHANGE_NAME = '';
+    protected const NAME = '';
+    protected const ROUTING_KEY = '';
 
     private string $eventId;
     private string $eventCreatedAt;
 
     public function prepare(): void
     {
+        if (static::EXCHANGE_NAME === self::EXCHANGE_NAME ||
+            static::NAME === self::NAME ||
+            static::ROUTING_KEY === self::ROUTING_KEY) {
+            throw new InvalidEventDeclarationException("Pubsub events must override constants EXCHANGE_NAME, NAME and ROUTING_KEY");
+        }
+
         $this->eventId = Str::uuid()->toString();
         $this->eventCreatedAt = CarbonImmutable::now()->toDateTimeString();
     }
@@ -48,7 +55,7 @@ abstract class PublishEvent implements SendToRabbitMQInterface
     public function getPayload(): array
     {
         return array_merge($this->toPayload(), [
-            '_eventId'        => $this->getEventId(),
+            '_eventId' => $this->getEventId(),
             '_eventCreatedAt' => $this->getEventCreatedAt(),
         ]);
     }
@@ -70,7 +77,8 @@ abstract class PublishEvent implements SendToRabbitMQInterface
      *
      * @return string
      */
-    public function getRoutingKey(): string {
+    public function getRoutingKey(): string
+    {
         return static::ROUTING_KEY;
     }
 
@@ -87,7 +95,8 @@ abstract class PublishEvent implements SendToRabbitMQInterface
     /**
      * Event name
      */
-    public function getName(): string {
+    public function getName(): string
+    {
         return static::NAME;
     }
 
