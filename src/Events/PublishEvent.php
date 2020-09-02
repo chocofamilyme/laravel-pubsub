@@ -16,19 +16,18 @@ use Illuminate\Support\Str;
  */
 abstract class PublishEvent implements SendToRabbitMQInterface
 {
-    protected const EXCHANGE_NAME = '';
-    protected const NAME = '';
-    protected const ROUTING_KEY = '';
+    protected const EXCHANGE_NAME = null;
+    protected const NAME = null;
+    protected const ROUTING_KEY = null;
 
     private string $eventId;
     private string $eventCreatedAt;
 
     public function prepare(): void
     {
-        /** @psalm-suppress TypeDoesNotContainType */
-        if (static::EXCHANGE_NAME === self::EXCHANGE_NAME ||
-            static::NAME === self::NAME ||
-            static::ROUTING_KEY === self::ROUTING_KEY) {
+        if (empty(static::EXCHANGE_NAME) ||
+            empty(static::NAME) ||
+            empty(static::ROUTING_KEY)) {
             throw new InvalidEventDeclarationException("Pubsub events must override constants EXCHANGE_NAME, NAME and ROUTING_KEY");
         }
 
