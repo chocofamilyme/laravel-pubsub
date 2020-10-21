@@ -10,6 +10,7 @@ use Illuminate\Pipeline\Pipeline;
 use Illuminate\Queue\InteractsWithQueue;
 use ReflectionClass;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Throwable;
 
 /**
  * Class CallQueuedHandler
@@ -61,7 +62,14 @@ class CallQueuedHandler
 
         $listener = $this->setJobInstanceIfNecessary($job, $listener);
 
-        $this->dispatchThroughMiddleware($job, $listener, $data);
+        try {
+            $this->dispatchThroughMiddleware($job, $listener, $data);
+        } catch (Throwable $e) {
+            if (method_exists($listener, 'failed')) {
+                $listener->failed($data, $e);
+            }
+            $job->fail($e);
+        }
 
         if (!$job->hasFailed() && !$job->isReleased()) {
             $this->ensureNextJobInChainIsDispatched($listener);
@@ -90,11 +98,17 @@ class CallQueuedHandler
          * @psalm-suppress PossiblyInvalidPropertyFetch
          */
         return (new Pipeline($this->container))->send($listener)
-            ->through(array_merge(method_exists($listener, 'middleware') ? $listener->middleware() : [],
-                $listener->middleware ?? []))
-            ->then(function ($listener) use ($data) {
-                return $listener->handle($data);
-            });
+            ->through(
+                array_merge(
+                    method_exists($listener, 'middleware') ? $listener->middleware() : [],
+                    $listener->middleware ?? []
+                )
+            )
+            ->then(
+                function ($listener) use ($data) {
+                    return $listener->handle($data);
+                }
+            );
     }
 
 
@@ -168,10 +182,12 @@ class CallQueuedHandler
      */
     public function failed(array $data, $e)
     {
-        $command = unserialize($data['command']);
+        if (isset($data['command'])) {
+            $command = \unserialize($data['command']);
 
-        if (method_exists($command, 'failed')) {
-            $command->failed($e);
+            if (method_exists($command, 'failed')) {
+                $command->failed($e);
+            }
         }
     }
 }

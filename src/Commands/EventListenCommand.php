@@ -19,12 +19,12 @@ class EventListenCommand extends ConsumeCommand
                             {--delay=0 : The number of seconds to delay failed jobs}
                             {--force : Force the worker to run even in maintenance mode}
                             {--memory=128 : The memory limit in megabytes}
-                            {--sleep=3 : Number of seconds to sleep when no job is available}
+                            {--sleep=1 : Number of seconds to sleep when no job is available}
                             {--timeout=0 : The number of seconds a child process can run}
                             {--tries=1 : Number of times to attempt a job before logging it failed}
                             {--exclusive=0 : used by only one connection and the queue will be deleted when that connection close}
                             {--consumer_exclusive=0 : request exclusive consumer access, meaning only this consumer can access the queue}
-                            {--wait_non_blocking=0 : non-blocking actions}
+                            {--wait_non_blocking=1 : non-blocking actions}
                             {--exchange_passive=0 : If set, the server will reply with Declare-Ok if the exchange already exists with the same name, and raise an error if not}
                             {--exchange_durable=1 : If set when creating a new exchange, the exchange will be marked as durable}
                             {--exchange_auto_delete=0 : If set, the exchange is deleted when all queues have finished using it}
@@ -73,7 +73,7 @@ class EventListenCommand extends ConsumeCommand
         $listener->setConsumerExclusive((bool)$this->option('consumer_exclusive'));
         $listener->setJob($job);
         $listener->setMessageTtl(config('queue.connections.rabbitmq.options.message-ttl', 0));
-        $listener->setWaitNonBlockin((bool) $this->option('wait_non_blocking'));
+        $listener->setWaitNonBlocking((bool) $this->option('wait_non_blocking'));
 
         $listener->setExchangePassive((bool) $this->option('exchange_passive'));
         $listener->setExchangeDurable((bool) $this->option('exchange_durable'));

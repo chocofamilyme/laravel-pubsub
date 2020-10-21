@@ -78,8 +78,7 @@ class Dispatcher extends BaseDispatcher
                         'type' => $event->getExchangeType(),
                     ],
                     'headers' => $event->getHeaders()
-                ]
-            );
+                ]);
 
             if ($durable) {
                 $model->processed_at = CarbonImmutable::now();

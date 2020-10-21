@@ -25,9 +25,11 @@ abstract class PublishEvent implements SendToRabbitMQInterface
 
     public function prepare(): void
     {
-        if (empty(static::EXCHANGE_NAME) ||
+        if (
+            empty(static::EXCHANGE_NAME) ||
             empty(static::NAME) ||
-            empty(static::ROUTING_KEY)) {
+            empty(static::ROUTING_KEY)
+        ) {
             throw new InvalidEventDeclarationException("Pubsub events must override constants EXCHANGE_NAME, NAME and ROUTING_KEY");
         }
 
