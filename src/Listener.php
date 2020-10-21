@@ -59,6 +59,7 @@ class Listener extends Consumer
         $connection = $this->manager->connection($connectionName);
 
         $this->channel = $connection->getChannel();
+        $this->gotJob  = !$this->waitNonBlocking;
 
         $connection->declareQueue(
             $queue,
@@ -99,7 +100,7 @@ class Listener extends Consumer
             $this->consumerExclusive,
             false,
             function (AMQPMessage $message) use ($connection, $options, $connectionName, $queue): void {
-                $this->gotJob = $this->waitNonBlocking;
+                $this->gotJob = true;
 
                 $listener = RabbitMQFactory::make(
                     $this->job,
@@ -148,7 +149,7 @@ class Listener extends Consumer
             }
 
             // If no job is got off the queue, we will need to sleep the worker.
-            if (! $this->gotJob) {
+            if (!$this->gotJob) {
                 $this->sleep($options->sleep);
             }
 
