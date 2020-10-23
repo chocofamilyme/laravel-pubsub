@@ -19,3 +19,5 @@ php artisan vendor:publish --provider="Chocofamilyme\LaravelPubSub\Providers\Pub
 * If `getEventName()` was overridden change it to `getName()` or declare the event name as `protected const NAME`.
 * Instead of overriding `getExchange()` and `getRoutingKey()` you must declare constants `EXCHANGE_NAME` and `ROUTING_KEY`
 * Done! =)
+
+P.S. add `implements  Chocofamilyme\LaravelPubSub\Events\DurableEvent` for classes extend `Chocofamilyme\LaravelPubSub\Events\PublishEvent` to persist event in database.
