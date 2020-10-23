@@ -86,7 +86,7 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
             __DIR__ . '/../config/pubsub.php' => config_path('pubsub.php'),
         ]);
         $this->publishes([
-            __DIR__ . '/../database/migrations/create_pubsub_events_table.php.stub' => $this->getMigrationFileName(),
+            __DIR__ . '/../../database/migrations/create_pubsub_events_table.php.stub' => $this->getMigrationFileName(),
         ], 'migrations');
 
         // Add class and it's facade
@@ -122,18 +122,14 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
      */
     protected function getMigrationFileName(): string
     {
-        /**
-         * @var Filesystem $filesystem
-         * @psalm-suppress UndefinedInterfaceMethod
-         */
-        $filesystem = $this->app['filesystem'];
-
         $timestamp = date('Y_m_d_His');
 
+        $filenameSuffix = '_create_pubsub_events_table.php';
+
         return Collection::make($this->app->databasePath() . DIRECTORY_SEPARATOR . 'migrations' . DIRECTORY_SEPARATOR)
-            ->flatMap(function ($path) use ($filesystem) {
-                return $filesystem->glob($path . '*_create_pubusb_events_table.php');
-            })->push($this->app->databasePath() . "/migrations/{$timestamp}_create_pubusb_events_table.php")
+            ->flatMap(function ($path) use ($filenameSuffix) {
+                return glob($path . '*' . $filenameSuffix);
+            })->push($this->app->databasePath() . "/migrations/{$timestamp}{$filenameSuffix}")
             ->first();
     }
 }

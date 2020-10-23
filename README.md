@@ -5,8 +5,11 @@ Laravel pub/sub library allows you to publish, consume and process rabbit events
 ```bash  
 composer require chocofamilyme/laravel-pubsub
 ```
-  
-# Publishing the configuration (optional)  
+
+# Upgrade v3 -> v4
+Read upgrade guide [here](https://github.com/chocofamilyme/laravel-pubsub/blob/master/docs/UPGRADE.md)
+
+# Publishing the configuration and migration  
 ```bash  
 php artisan vendor:publish --provider="Chocofamilyme\LaravelPubSub\Providers\PubSubServiceProvider"
 ```
@@ -84,7 +87,7 @@ AMQP configuration should be inserted into config/queue.php
 | options.publisher.exchange.name   | string                    | Exchange name |
   
 ## Event routing configuration
-Event routing configuration file is located under config/pubsub.php and contains configuration for EventRouting.  
+Event routing configuration file is located under config/pubsub.php and contains configuration for EventRouting and storing events in database.  
 ```php  
 <?php
 
@@ -107,6 +110,13 @@ return [
     */
     'listen' => [
 
+    ],
+    
+    /**
+     * Define database tables for storing data (publishing events, incoming events, etc.)
+     */
+    'tables' => [
+        'events' => 'pubsub_events'
     ]
 ];  
 ```  
@@ -206,6 +216,7 @@ class UserUpdatedEvent extends PublishEvent
     public int $id;
     public string $name;
 
+    public const EXCHANGE_NAME = 'exchangeName';
     public const NAME          = 'UserUpdated';
     public const ROUTING_KEY   = 'user.updated';
 
