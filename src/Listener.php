@@ -100,6 +100,7 @@ class Listener extends Consumer
         }
 
         $lastRestart = $this->getTimestampOfLastQueueRestart();
+        $this->gotJob  = !$this->waitNonBlockin;
 
         /** @var RabbitMQQueue $connection */
         $connection = $this->manager->connection($connectionName);
@@ -145,6 +146,8 @@ class Listener extends Consumer
             $this->consumerExclusive,
             false,
             function (AMQPMessage $message) use ($connection, $options, $connectionName, $queue): void {
+                $this->gotJob = true;
+
                 $listener = RabbitMQFactory::make(
                     $this->job,
                     $this->container,
@@ -191,11 +194,17 @@ class Listener extends Consumer
                 $this->stopWorkerIfLostConnection($exception);
             }
 
+            if (!$this->gotJob) {
+                $this->sleep($options->sleep);
+            }
+
             // Finally, we will check to see if we have exceeded our memory limits or if
             // the queue should restart based on other indications. If so, we'll stop
             // this worker and let whatever is "monitoring" it restart the process.
             /** @psalm-suppress PossiblyNullArgument */
             $this->stopIfNecessary($options, $lastRestart, null);
+
+            $this->gotJob = false;
         }
     }
 
