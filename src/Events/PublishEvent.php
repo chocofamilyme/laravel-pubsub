@@ -25,12 +25,9 @@ abstract class PublishEvent implements SendToRabbitMQInterface
 
     public function prepare(): void
     {
-        if (
-            empty(static::EXCHANGE_NAME) ||
-            empty(static::NAME) ||
-            empty(static::ROUTING_KEY)
-        ) {
-            throw new InvalidEventDeclarationException("Pubsub events must override constants EXCHANGE_NAME, NAME and ROUTING_KEY");
+        if (empty(static::EXCHANGE_NAME) ||
+            empty(static::ROUTING_KEY)) {
+            throw new InvalidEventDeclarationException("Pubsub events must override constants EXCHANGE_NAME, ROUTING_KEY");
         }
 
         $this->eventId = Str::uuid()->toString();
@@ -62,7 +59,10 @@ abstract class PublishEvent implements SendToRabbitMQInterface
         ]);
     }
 
-    abstract public function toPayload(): array;
+    public function toPayload(): array
+    {
+        return get_object_vars($this);
+    }
 
     /**
      * Exchange in queue borker
@@ -99,7 +99,7 @@ abstract class PublishEvent implements SendToRabbitMQInterface
      */
     public function getName(): string
     {
-        return static::NAME;
+        return static::NAME ?? last(explode('\\', static::class));;
     }
 
     public function getHeaders(): array
@@ -117,10 +117,5 @@ abstract class PublishEvent implements SendToRabbitMQInterface
     public function getEventCreatedAt(): string
     {
         return $this->eventCreatedAt;
-    }
-
-    public function getPublicProperties(): array
-    {
-        return $this->getPayload();
     }
 }
