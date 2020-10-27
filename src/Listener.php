@@ -54,7 +54,7 @@ class Listener extends Consumer
         }
 
         $lastRestart = $this->getTimestampOfLastQueueRestart();
-        $this->gotJob  = !$this->waitNonBlockin;
+        $this->gotJob  = !$this->waitNonBlocking;
 
         /** @var RabbitMQQueue $connection */
         $connection = $this->manager->connection($connectionName);
