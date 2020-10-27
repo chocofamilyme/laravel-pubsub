@@ -17,8 +17,7 @@ return [
     | ],
     |
     */
-    'listen' => [
-    ],
+    'listen' => [],
 
     /**
      * Define database tables for storing data (publishing events, incoming events, etc.)
