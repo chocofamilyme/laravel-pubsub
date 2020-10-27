@@ -1,16 +1,12 @@
 <?php
-/**
- * @package Chocolife.me
- * @author  Moldabayev Vadim <moldabayev.v@chocolife.kz>
- */
+
+declare(strict_types=1);
 
 namespace Chocofamilyme\LaravelPubSub;
 
 use ErrorException;
 use Exception;
-use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\WorkerOptions;
-use Illuminate\Support\Carbon;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
 use PhpAmqpLib\Message\AMQPMessage;
 use Throwable;
@@ -26,72 +22,30 @@ use Chocofamilyme\LaravelPubSub\Queue\Factory\RabbitMQFactory;
  */
 class Listener extends Consumer
 {
-    /**
-     * @var string
-     */
-    protected $exchange = '';
-
-    /**
-     * @var string
-     */
-    protected $exchangeType = 'topic';
-
-    /**
-     * @var bool
-     */
-    protected $durable = true;
-
-    /**
-     * @var bool
-     */
-    protected $autoDelete = false;
-
-    /**
-     * @var bool
-     */
-    protected $exclusive = false;
-
-    /**
-     * @var array
-     */
-    protected $routes = [];
-
-    /**
-     * @var string
-     */
-    protected $job = 'laravel';
-
-    /**
-     * @var int
-     */
-    protected $messageTtl = 0;
-
-    /**
-     * @var bool
-     */
-    protected $noAck = false;
-
-    /**
-     * @var bool
-     */
-    protected $consumerExclusive = false;
-
-    protected $waitNonBlockin = false;
-
-    /** @var bool  */
-    private $exchangePassive = false;
-
-    /** @var bool  */
-    private $exchangeDurable = true;
-
-    /** @var bool  */
-    private $exchangeAutoDelete = false;
+    protected string $exchange = '';
+    protected string $exchangeType = 'topic';
+    protected bool $durable = true;
+    protected bool $autoDelete = false;
+    protected bool $exclusive = false;
+    protected array $routes = [];
+    protected string $job = 'laravel';
+    protected int $messageTtl = 0;
+    protected bool $noAck = false;
+    protected bool $consumerExclusive = false;
+    protected bool $waitNonBlocking = true;
+    private bool $exchangePassive = false;
+    private bool $exchangeDurable = true;
+    private bool $exchangeAutoDelete = false;
 
     /**
      * @param string        $connectionName
      * @param string        $queue
      * @param WorkerOptions $options
      *
+     * @return void
+     *
+     * @psalm-suppress ImplementedReturnTypeMismatch
+     * @throws Throwable
      */
     public function daemon($connectionName, $queue, WorkerOptions $options): void
     {
@@ -100,7 +54,7 @@ class Listener extends Consumer
         }
 
         $lastRestart = $this->getTimestampOfLastQueueRestart();
-        $this->gotJob  = !$this->waitNonBlockin;
+        $this->gotJob  = !$this->waitNonBlocking;
 
         /** @var RabbitMQQueue $connection */
         $connection = $this->manager->connection($connectionName);
@@ -177,8 +131,8 @@ class Listener extends Consumer
             try {
                 $this->channel->wait(
                     null,
-                    $this->waitNonBlockin,
-                    (int) $options->timeout
+                    $this->waitNonBlocking,
+                    (int)$options->timeout
                 );
             } catch (AMQPRuntimeException $exception) {
                 $this->exceptions->report($exception);
@@ -194,6 +148,7 @@ class Listener extends Consumer
                 $this->stopWorkerIfLostConnection($exception);
             }
 
+            // If no job is got off the queue, we will need to sleep the worker.
             if (!$this->gotJob) {
                 $this->sleep($options->sleep);
             }
@@ -202,7 +157,7 @@ class Listener extends Consumer
             // the queue should restart based on other indications. If so, we'll stop
             // this worker and let whatever is "monitoring" it restart the process.
             /** @psalm-suppress PossiblyNullArgument */
-            $this->stopIfNecessary($options, $lastRestart, null);
+            $this->stopIfNecessary($options, $lastRestart);
 
             $this->gotJob = false;
         }
@@ -213,40 +168,23 @@ class Listener extends Consumer
      *
      * @param \Illuminate\Queue\WorkerOptions $options
      * @param int                             $lastRestart
+     * @param int                             $startTime
+     * @param int                             $jobsProcessed
      * @param mixed                           $job
      *
      * @return void
      */
-    protected function stopIfNecessary(WorkerOptions $options, $lastRestart, $job = null)
-    {
+    protected function stopIfNecessary(
+        WorkerOptions $options,
+        $lastRestart,
+        $startTime = 0,
+        $jobsProcessed = 0,
+        $job = null
+    ) {
         if ($this->shouldQuit) {
             $this->stop();
         } elseif ($options->stopWhenEmpty && is_null($job)) {
             $this->stop();
-        }
-    }
-
-
-    /**
-     * Mark the given job as failed if it has exceeded the maximum allowed attempts.
-     *
-     * @param string    $connectionName
-     * @param Job       $job
-     * @param int       $maxTries
-     * @param Exception $e
-     *
-     * @return void
-     */
-    protected function markJobAsFailedIfWillExceedMaxAttempts($connectionName, $job, $maxTries, $e): void
-    {
-        $maxTries = !is_null($job->maxTries()) ? $job->maxTries() : $maxTries;
-
-        if ($job->timeoutAt() && $job->timeoutAt() <= Carbon::now()->getTimestamp()) {
-            $this->failJob($job, $e);
-        }
-
-        if ($maxTries > 0 && $job->attempts() >= $maxTries) {
-            $this->failJob($job, $e);
         }
     }
 
@@ -255,7 +193,6 @@ class Listener extends Consumer
      */
     protected function getQueueArguments(): array
     {
-
         $arguments = [
             'exclusive' => $this->exclusive,
         ];
@@ -364,11 +301,11 @@ class Listener extends Consumer
     }
 
     /**
-     * @param bool $waitNonBlockin
+     * @param bool $waitNonBlocking
      */
-    public function setWaitNonBlockin(bool $waitNonBlockin): void
+    public function setWaitNonBlocking(bool $waitNonBlocking): void
     {
-        $this->waitNonBlockin = $waitNonBlockin;
+        $this->waitNonBlocking = $waitNonBlocking;
     }
 
     /**

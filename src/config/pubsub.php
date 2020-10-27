@@ -17,14 +17,12 @@ return [
     | ],
     |
     */
-    'listen' => [
-        
-    ],
+    'listen' => [],
 
     /**
      * Define database tables for storing data (publishing events, incoming events, etc.)
      */
     'tables' => [
-        'events' => 'pubsub_events'
-    ]
+        'events' => 'pubsub_events',
+    ],
 ];

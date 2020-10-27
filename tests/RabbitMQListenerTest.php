@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package Chocolife.me
  * @author  Moldabayev Vadim <moldabayev.v@chocolife.kz>
@@ -12,7 +13,6 @@ use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQExternal;
 use Illuminate\Contracts\Bus\Dispatcher;
 use PhpAmqpLib\Message\AMQPMessage;
-use ReflectionClass;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
 class RabbitMQListenerTest extends TestCase
@@ -29,10 +29,9 @@ class RabbitMQListenerTest extends TestCase
                 'test.route' => [
                     TestListener::class,
                 ],
-            ]
-        );
+            ]);
 
-        $this->app['config']->set('queue', require __DIR__.'/config/queue.php');
+        $this->app['config']->set('queue', require __DIR__ . '/config/queue.php');
 
         $this->rabbitmq  = $this->createMock(RabbitMQQueue::class);
         $this->rabbitmq->method('ack');

@@ -7,13 +7,13 @@ use Chocofamilyme\LaravelPubSub\Amqp\AmqpFacade;
 use Chocofamilyme\LaravelPubSub\Commands\EventListenCommand;
 use Chocofamilyme\LaravelPubSub\Events\Dispatcher;
 use Chocofamilyme\LaravelPubSub\Listener;
-use Chocofamilyme\LaravelPubSub\Queue\Connectors\RabbitMQConnector;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Contracts\Queue\Factory as QueueFactoryContract;
 use Illuminate\Support\Collection;
 use VladimirYuldashev\LaravelQueueRabbitMQ\LaravelQueueRabbitMQServiceProvider;
+use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Connectors\RabbitMQConnector;
 
 /**
  * Class PubSubServiceProvider
@@ -33,10 +33,12 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
 
         // Merge our config with application config
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/queue.php', 'queue'
+            __DIR__ . '/../config/queue.php',
+            'queue'
         );
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/pubsub.php', 'pubsub'
+            __DIR__ . '/../config/pubsub.php',
+            'pubsub'
         );
 
         if ($this->app->runningInConsole()) {

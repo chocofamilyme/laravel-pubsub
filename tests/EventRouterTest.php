@@ -21,8 +21,7 @@ class EventRouterTest extends TestCase
                 'test.route' => [
                     TestListener::class,
                 ],
-            ]
-        );
+            ]);
     }
 
     public function testItGetListeners()

@@ -73,7 +73,7 @@ class EventListenCommand extends ConsumeCommand
         $listener->setConsumerExclusive((bool)$this->option('consumer_exclusive'));
         $listener->setJob($job);
         $listener->setMessageTtl(config('queue.connections.rabbitmq.options.message-ttl', 0));
-        $listener->setWaitNonBlockin((bool) $this->option('wait_non_blocking'));
+        $listener->setWaitNonBlocking((bool) $this->option('wait_non_blocking'));
 
         $listener->setExchangePassive((bool) $this->option('exchange_passive'));
         $listener->setExchangeDurable((bool) $this->option('exchange_durable'));

@@ -16,6 +16,9 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
 
+      - name: Run phpcs
+        run: composer run-script test:style
+
       - name: Run test suite
         run: composer run-script test:unit
 

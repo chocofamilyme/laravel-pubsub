@@ -208,7 +208,8 @@ PS: Please note that you need to override toPayload() method returning array tha
 
 namespace App\Events;
 
-use Carbon\CarbonImmutable;use Chocofamilyme\LaravelPubSub\Events\PublishEvent;
+use Carbon\CarbonImmutable;
+use Chocofamilyme\LaravelPubSub\Events\PublishEvent;
 use Chocofamilyme\LaravelPubSub\Events\SendToRabbitMQAbstract;
 
 class UserUpdatedEvent extends PublishEvent
