@@ -35,8 +35,6 @@ final class UpdatePubsubEventsTableAddFailedColumns extends Migration
         $tableNames = $this->getTableNames();
 
         Schema::table($tableNames['events'], function (Blueprint $table) {
-            $table->dropIndex(['events_failed_at_index']);
-
             $table->dropColumn(['failed_at', 'exception']);
         });
     }
