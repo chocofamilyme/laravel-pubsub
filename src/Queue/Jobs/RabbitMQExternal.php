@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Chocofamilyme\LaravelPubSub\Queue\Jobs;
 
+use Carbon\CarbonImmutable;
+use Chocofamilyme\LaravelPubSub\Events\EventModel;
 use Chocofamilyme\LaravelPubSub\Exceptions\NotFoundListenerException;
 use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
 use Illuminate\Container\Container;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use PhpAmqpLib\Message\AMQPMessage;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
@@ -66,6 +69,18 @@ class RabbitMQExternal extends RabbitMQLaravel
         $payload   = $this->payload();
         $listeners = $this->eventRouter->getListeners($this->getName());
 
+        $model = new EventModel([
+            'id'            => $this->getEventId(),
+            'type'          => EventModel::TYPE_SUB,
+            'name'          => $this->getName(),
+            'payload'       => $payload,
+            'exchange'      => $this->message->getExchange(),
+            'routing_key'   => $this->message->getRoutingKey(),
+            'created_at'    => CarbonImmutable::now()->toDateTimeString()
+        ]);
+
+        $model->save();
+
         foreach ($listeners as $listener) {
             $this->instance->call($this, $listener, $payload);
         }
@@ -82,7 +97,15 @@ class RabbitMQExternal extends RabbitMQLaravel
         return $this->payload()['_event'] ?? Arr::get($this->message->delivery_info, 'routing_key');
     }
 
+    public function getEventId(): string
+    {
+        return $this->payload()['id'] ?? Str::uuid()->toString();
+    }
+
     public function failed($e)
     {
+        EventModel::where('id', $this->getEventId())->update([
+            'failed_at' => CarbonImmutable::now()->toDateTimeString()
+        ]);
     }
 }
