@@ -118,6 +118,11 @@ return [
     'tables' => [
         'events' => 'pubsub_events'
     ]
+    
+    /**
+     * If true, all incoming subscribe events will be recorded to tables->events table
+     */
+    'record_sub_events' => false
 ];  
 ```  
   
