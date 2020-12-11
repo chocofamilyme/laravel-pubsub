@@ -91,7 +91,7 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
             __DIR__ . '/../../database/migrations/create_pubsub_events_table.php.stub' => $this->getMigrationFileName('_create_pubsub_events_table.php'),
         ], 'migrations');
         $this->publishes([
-            __DIR__ . '/../../database/migrations/update_pubsub_events_table_add_failed_at_column.php.stub' => $this->getMigrationFileName('_update_pubsub_events_table_add_failed_at_column.php'),
+            __DIR__ . '/../../database/migrations/update_pubsub_events_table_add_failed_at_column.php.stub' => $this->getMigrationFileName('_update_pubsub_events_table_add_failed_columns.php'),
         ], 'migrations');
 
         // Add class and it's facade

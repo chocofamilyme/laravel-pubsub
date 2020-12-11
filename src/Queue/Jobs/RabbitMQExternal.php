@@ -105,6 +105,7 @@ class RabbitMQExternal extends RabbitMQLaravel
     public function failed($e)
     {
         EventModel::where('id', $this->getEventId())->update([
+            'exception' => (string) $e,
             'failed_at' => CarbonImmutable::now()->toDateTimeString()
         ]);
     }

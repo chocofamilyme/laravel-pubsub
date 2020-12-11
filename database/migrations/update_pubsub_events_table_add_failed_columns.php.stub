@@ -1,22 +1,24 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-class UpdatePubsubEventsTableAddFailedAtColumn extends Migration
+final class UpdatePubsubEventsTableAddFailedColumns extends Migration
 {
     /**
      * Run the migrations.
      *
      * @return void
+     * @throws Exception
      */
-    public function up()
+    public function up(): void
     {
         $tableNames = $this->getTableNames();
 
         Schema::table($tableNames['events'], function (Blueprint $table) {
             $table->timestamp('failed_at')->nullable();
+            $table->longText('exception')->nullable();
 
             $table->index(['type', 'failed_at'], 'events_failed_at_index');
         });
@@ -26,15 +28,16 @@ class UpdatePubsubEventsTableAddFailedAtColumn extends Migration
      * Reverse the migrations.
      *
      * @return void
+     * @throws Exception
      */
-    public function down()
+    public function down(): void
     {
         $tableNames = $this->getTableNames();
 
         Schema::table($tableNames['events'], function (Blueprint $table) {
-           $table->dropIndex(['events_failed_at_index'])
+            $table->dropIndex(['events_failed_at_index']);
 
-           $table->dropColumn('failed_at');
+            $table->dropColumn(['failed_at', 'exception']);
         });
     }
 
