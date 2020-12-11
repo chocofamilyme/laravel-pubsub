@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $routing_key
  * @property Carbon $created_at
  * @property Carbon|CarbonImmutable|string|null $processed_at
+ * @property Carbon|CarbonImmutable|string|null $failed_at
+ * @property string|null $exception
  */
 class EventModel extends Model
 {
