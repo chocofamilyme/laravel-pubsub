@@ -69,23 +69,28 @@ class RabbitMQExternal extends RabbitMQLaravel
         $payload   = $this->payload();
         $listeners = $this->eventRouter->getListeners($this->getName());
 
-        $model = new EventModel([
-            'id'            => $this->getEventId(),
-            'type'          => EventModel::TYPE_SUB,
-            'name'          => $this->getName(),
-            'payload'       => $payload,
-            'exchange'      => $this->message->getExchange(),
-            'routing_key'   => $this->message->getRoutingKey(),
-            'created_at'    => CarbonImmutable::now()->toDateTimeString()
-        ]);
-
-        $model->save();
+        if ($this->isSubscribeRecordEnabled()) {
+            $model = new EventModel([
+                'id'            => $this->getEventId(),
+                'type'          => EventModel::TYPE_SUB,
+                'name'          => $this->getName(),
+                'payload'       => $payload,
+                'exchange'      => $this->message->getExchange(),
+                'routing_key'   => $this->message->getRoutingKey(),
+                'created_at'    => CarbonImmutable::now()->toDateTimeString()
+            ]);
+            $model->save();
+        }
 
         foreach ($listeners as $listener) {
             $this->instance->call($this, $listener, $payload);
         }
     }
 
+    public function isSubscribeRecordEnabled(): bool
+    {
+        return config('pubsub.record_sub_events', false);
+    }
     /**
      * Get the name of the queued job class.
      *
@@ -104,9 +109,11 @@ class RabbitMQExternal extends RabbitMQLaravel
 
     public function failed($e)
     {
-        EventModel::where('id', $this->getEventId())->update([
-            'exception' => (string) $e,
-            'failed_at' => CarbonImmutable::now()->toDateTimeString()
-        ]);
+        if ($this->isSubscribeRecordEnabled()) {
+            EventModel::where('id', $this->getEventId())->update([
+                'exception' => (string) $e,
+                'failed_at' => CarbonImmutable::now()->toDateTimeString()
+            ]);
+        }
     }
 }

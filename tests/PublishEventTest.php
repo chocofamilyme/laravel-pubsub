@@ -20,7 +20,6 @@ class PublishEventTest extends TestCase
     {
         parent::setUp();
         $this->dispatcher = app()->make(Dispatcher::class);
-        $this->loadMigrationsFrom(__DIR__ . '/tests/database');
     }
 
     public function testItFire()
