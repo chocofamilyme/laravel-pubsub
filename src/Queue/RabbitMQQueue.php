@@ -6,7 +6,7 @@ namespace Chocofamilyme\LaravelPubSub\Queue;
 
 use Chocofamilyme\LaravelPubSub\Amqp\Message\OutputMessage;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQLaravel;
-use Illuminate\Contracts\Queue\Queue as QueueContract;
+use Exception;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue as Queue;
 use Illuminate\Support\Arr;
@@ -14,7 +14,7 @@ use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Wire\AMQPTable;
 
-class RabbitMQQueue extends Queue implements QueueContract
+class RabbitMQQueue extends Queue
 {
     /**
      * The RabbitMQ connection instance.
@@ -60,7 +60,7 @@ class RabbitMQQueue extends Queue implements QueueContract
 
     /**
      * {@inheritdoc}
-     * @throws \Exception
+     * @throws Exception
      */
     public function pushRaw($payload, $queue = null, array $options = [])
     {
@@ -101,12 +101,12 @@ class RabbitMQQueue extends Queue implements QueueContract
      * @param int          $attempts
      *
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getMessage($payload, array $headers = [], int $attempts = 0): array
     {
         if (is_string($payload)) {
-            $payload = json_decode($payload, true);
+            $payload = \json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
         }
 
         $outputMessage = new OutputMessage($payload, $headers, $attempts);

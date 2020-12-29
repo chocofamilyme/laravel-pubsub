@@ -36,7 +36,7 @@ class OutputMessage implements MessageInterface
         $this->body = $body;
         $this->initHeaders($body, $headers);
 
-        $this->message = new AMQPMessage(\json_encode($this->getBody()), $this->headers);
+        $this->message = new AMQPMessage(\json_encode($this->getBody(), JSON_THROW_ON_ERROR), $this->headers);
         $this->message->set('application_headers', $this->createTable($headers, $attempts));
     }
 

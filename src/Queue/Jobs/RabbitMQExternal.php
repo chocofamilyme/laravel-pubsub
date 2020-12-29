@@ -8,7 +8,6 @@ use Chocofamilyme\LaravelPubSub\Exceptions\NotFoundListenerException;
 use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
 use Illuminate\Container\Container;
-use Illuminate\Support\Arr;
 use PhpAmqpLib\Message\AMQPMessage;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
@@ -21,10 +20,7 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
  */
 class RabbitMQExternal extends RabbitMQLaravel
 {
-    /**
-     * @var EventRouter
-     */
-    protected $eventRouter;
+    protected EventRouter $eventRouter;
 
     /**
      * ListenerMQJob constructor.
@@ -78,8 +74,13 @@ class RabbitMQExternal extends RabbitMQLaravel
      */
     public function getName(): string
     {
-        /** @psalm-suppress InternalProperty */
-        return $this->payload()['_event'] ?? Arr::get($this->message->delivery_info, 'routing_key');
+        $name = $this->payload()['_event'] ?? $this->message->getRoutingKey();
+
+        if (null === $name) {
+            throw new \RuntimeException("The name is not defined");
+        }
+
+        return $name;
     }
 
     public function failed($e)

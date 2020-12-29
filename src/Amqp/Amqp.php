@@ -1,51 +1,51 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chocofamilyme\LaravelPubSub\Amqp;
 
 use Chocofamilyme\LaravelPubSub\Queue\RabbitMQQueue;
+use Exception;
+use Illuminate\Config\Repository;
+use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Queue\QueueManager;
-use Ramsey\Uuid\Uuid;
 
-/**
- * Class Amqp
- *
- * @package Chocofamilyme\LaravelPubSub\Amqp
- */
 class Amqp
 {
-    /**
-     * @var RabbitMQQueue
-     */
-    private $rabbit;
+    protected Queue $rabbit;
 
-    public function __construct(QueueManager $queue, ?string $connection = null)
+    public function __construct(QueueManager $queue, Repository $config, ?string $connection = null)
     {
-        $connection   = $connection ?? config('queue.default');
-        /** @psalm-var RabbitMQQueue */
+        $connection   ??= $config->get('queue.default');
         $this->rabbit = $queue->connection($connection);
     }
 
     /**
      * @param string $routing
-     * @param mixed  $body
+     * @param        $body
      * @param array  $properties
      * @param array  $headers
      *
      * @return mixed
-     * @throws \Exception
+     * @throws Exception
      */
     public function publish(
-        $routing,
+        string $routing,
         $body,
         array $properties = [],
         array $headers = []
     ) {
-        $correlationId = $headers['correlation_id'] ?? Uuid::uuid4();
+        $properties['headers'] = $headers;
 
-        $headers['correlation_id'] = $correlationId;
+        if ($this->isNeedJsonEncode($body)) {
+            $body = \json_encode($body, JSON_THROW_ON_ERROR);
+        }
 
-        $correlationId = $this->rabbit->pushRaw($body, $routing, $properties);
+        return $this->rabbit->pushRaw($body, $routing, $properties);
+    }
 
-        return $correlationId;
+    protected function isNeedJsonEncode($body): bool
+    {
+        return !($this->rabbit instanceof RabbitMQQueue) && !is_string($body);
     }
 }

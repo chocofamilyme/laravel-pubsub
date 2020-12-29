@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chocofamilyme\LaravelPubSub\Providers;
 
 use Chocofamilyme\LaravelPubSub\Amqp\Amqp;
@@ -8,9 +10,9 @@ use Chocofamilyme\LaravelPubSub\Commands\EventListenCommand;
 use Chocofamilyme\LaravelPubSub\Events\Dispatcher;
 use Chocofamilyme\LaravelPubSub\Listener;
 use Illuminate\Contracts\Debug\ExceptionHandler;
-use Illuminate\Filesystem\Filesystem;
+use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
+use Illuminate\Queue\Connectors\ConnectorInterface;
 use Illuminate\Queue\QueueManager;
-use Illuminate\Contracts\Queue\Factory as QueueFactoryContract;
 use Illuminate\Support\Collection;
 use VladimirYuldashev\LaravelQueueRabbitMQ\LaravelQueueRabbitMQServiceProvider;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Connectors\RabbitMQConnector;
@@ -42,38 +44,40 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
         );
 
         if ($this->app->runningInConsole()) {
-            $this->app->singleton('rabbitmq.listener', function () {
-                $isDownForMaintenance = function (): bool {
-                    return $this->app->isDownForMaintenance();
-                };
+            $this->app->singleton(
+                'rabbitmq.listener',
+                function () {
+                    $isDownForMaintenance = function (): bool {
+                        return $this->app->isDownForMaintenance();
+                    };
 
-                /** @psalm-suppress UndefinedInterfaceMethod */
-                return new Listener(
-                    $this->app['queue'],
-                    $this->app['events'],
-                    $this->app[ExceptionHandler::class],
-                    $isDownForMaintenance
-                );
-            });
+                    /** @psalm-suppress UndefinedInterfaceMethod */
+                    return new Listener(
+                        $this->app['queue'],
+                        $this->app['events'],
+                        $this->app[ExceptionHandler::class],
+                        $isDownForMaintenance
+                    );
+                }
+            );
 
-            $this->app->singleton(EventListenCommand::class, static function ($app) {
-                return new EventListenCommand(
-                    $app['rabbitmq.listener'],
-                    $app['cache.store']
-                );
-            });
+            $this->app->singleton(
+                EventListenCommand::class,
+                static function ($app) {
+                    return new EventListenCommand(
+                        $app['rabbitmq.listener'],
+                        $app['cache.store']
+                    );
+                }
+            );
 
             // Register artisan commands
-            $this->commands([
-                EventListenCommand::class,
-            ]);
+            $this->commands(
+                [
+                    EventListenCommand::class,
+                ]
+            );
         }
-
-        $this->app->extend('events', function ($baseDispatcher) {
-            $dispatcher = new Dispatcher($baseDispatcher);
-
-            return $dispatcher;
-        });
     }
 
     /**
@@ -84,21 +88,18 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
     public function boot(): void
     {
         // Config
-        $this->publishes([
-            __DIR__ . '/../config/pubsub.php' => config_path('pubsub.php'),
-        ]);
-        $this->publishes([
-            __DIR__ . '/../../database/migrations/create_pubsub_events_table.php.stub' => $this->getMigrationFileName(),
-        ], 'migrations');
-
-        // Add class and it's facade
-        $this->app->bind('Amqp', function ($app) {
-            return new Amqp($app['queue']);
-        });
-
-        if (!class_exists('Amqp')) {
-            class_alias(AmqpFacade::class, 'Amqp');
-        }
+        $this->publishes(
+            [
+                __DIR__ . '/../config/pubsub.php' => config_path('pubsub.php'),
+            ]
+        );
+        $this->publishes(
+            [
+                __DIR__
+                . '/../../database/migrations/create_pubsub_events_table.php.stub' => $this->getMigrationFileName(),
+            ],
+            'migrations'
+        );
 
         /**
          * @var QueueManager $queue
@@ -106,12 +107,35 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
          */
         $queue = $this->app['queue'];
 
-        $queue->addConnector('rabbitmq', function () {
-            /** @psalm-suppress UndefinedInterfaceMethod */
-            return new RabbitMQConnector($this->app['events']);
-        });
+        $queue->addConnector(
+            'rabbitmq',
+            function (): ConnectorInterface {
+                return new RabbitMQConnector($this->app->make('events'));
+            }
+        );
+
+        $this->app->bind(
+            'Amqp',
+            function ($app) {
+                return new Amqp($app['queue'], $app['config']);
+            }
+        );
+
+        if (!class_exists('Amqp')) {
+            class_alias(AmqpFacade::class, 'Amqp');
+        }
+
+        $this->app->extend(
+            'events',
+            function (DispatcherContract $baseDispatcher) {
+                return new Dispatcher($baseDispatcher, $this->app->make('Amqp'));
+            }
+        );
     }
 
+    /**
+     * @return array
+     */
     public function provides()
     {
         return ['Amqp'];
@@ -129,9 +153,11 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
         $filenameSuffix = '_create_pubsub_events_table.php';
 
         return Collection::make($this->app->databasePath() . DIRECTORY_SEPARATOR . 'migrations' . DIRECTORY_SEPARATOR)
-            ->flatMap(function ($path) use ($filenameSuffix) {
-                return glob($path . '*' . $filenameSuffix);
-            })->push($this->app->databasePath() . "/migrations/{$timestamp}{$filenameSuffix}")
+            ->flatMap(
+                function ($path) use ($filenameSuffix) {
+                    return glob($path . '*' . $filenameSuffix);
+                }
+            )->push($this->app->databasePath() . "/migrations/{$timestamp}{$filenameSuffix}")
             ->first();
     }
 }

@@ -3,6 +3,7 @@
 namespace Chocofamilyme\LaravelPubSub\Events;
 
 use Carbon\CarbonImmutable;
+use Chocofamilyme\LaravelPubSub\Amqp\Amqp;
 use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
 
 /**
@@ -12,16 +13,14 @@ use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
  */
 class Dispatcher implements DispatcherContract
 {
-    /**
-     * The event dispatcher.
-     *
-     * @var \Illuminate\Contracts\Events\Dispatcher
-     */
-    private $dispatcher;
+    private DispatcherContract $dispatcher;
 
-    public function __construct(DispatcherContract $eventDispatcher)
+    private Amqp $amqp;
+
+    public function __construct(DispatcherContract $eventDispatcher, Amqp $amqp)
     {
         $this->dispatcher = $eventDispatcher;
+        $this->amqp = $amqp;
     }
 
     /**
@@ -85,9 +84,9 @@ class Dispatcher implements DispatcherContract
             $eventPayload           = $event->getPayload();
             $eventPayload['_event'] = $event->getName();
 
-            $this->container->get('Amqp')->publish(
+            $this->amqp->publish(
                 $event->getRoutingKey(),
-                json_encode($eventPayload),
+                $eventPayload,
                 [
                     'exchange' => [
                         'name' => $event->getExchange(),

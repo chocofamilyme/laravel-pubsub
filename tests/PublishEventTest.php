@@ -1,16 +1,13 @@
 <?php
 
-/**
- * @package Chocolife.me
- * @author  Moldabayev Vadim <moldabayev.v@chocolife.kz>
- */
+declare(strict_types=1);
 
 namespace Chocofamily\LaravelPubSub\Tests;
 
 use Chocofamily\LaravelPubSub\Tests\TestClasses\TestInvalidEvent;
 use Chocofamily\LaravelPubSub\Tests\TestClasses\TestValidEvent;
-use Chocofamilyme\LaravelPubSub\Events\Dispatcher;
 use Chocofamilyme\LaravelPubSub\Exceptions\InvalidEventDeclarationException;
+use Illuminate\Contracts\Events\Dispatcher;
 
 class PublishEventTest extends TestCase
 {
@@ -19,10 +16,10 @@ class PublishEventTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->dispatcher = app()->make(Dispatcher::class);
+        $this->dispatcher = $this->app->make(Dispatcher::class);
     }
 
-    public function testItFire()
+    public function testItFire(): void
     {
         $event = new TestValidEvent();
         $result = $this->dispatcher->dispatch($event);
@@ -30,7 +27,7 @@ class PublishEventTest extends TestCase
         $this->assertEmpty($result);
     }
 
-    public function testItFails()
+    public function testItFails(): void
     {
         $this->expectException(InvalidEventDeclarationException::class);
 
