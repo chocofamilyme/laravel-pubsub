@@ -8,29 +8,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+      - with:
+          php-version: '7.4'
 
       - name: Validate composer.json and composer.lock
         run: composer validate
-        with:
-          php-version: '7.4'
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
-        with:
-          php-version: '7.4'
 
       - name: Run phpcs
         run: composer run-script test:style
-        with:
-          php-version: '7.4'
 
       - name: Run test suite
         run: composer run-script test:unit
-        with:
-          php-version: '7.4'
 
       - name: Run psalm
         run: composer run-script test:psalm
-        with:
-          php-version: '7.4'
