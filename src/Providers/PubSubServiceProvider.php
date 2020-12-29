@@ -69,10 +69,10 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
             ]);
         }
 
-        $this->app->singleton('events', function ($app) {
-            return (new Dispatcher($app))->setQueueResolver(function () use ($app) {
-                return $app->make(QueueFactoryContract::class);
-            });
+        $this->app->extend('events', function ($baseDispatcher) {
+            $dispatcher = new Dispatcher($baseDispatcher);
+
+            return $dispatcher;
         });
     }
 
