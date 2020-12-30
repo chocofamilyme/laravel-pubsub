@@ -105,7 +105,11 @@ class Dispatcher implements DispatcherContract
                 $payload,
                 $event->getRoutingKey(),
                 [
-                    'headers' => $event->getHeaders(),
+                    'exchange' => [
+                        'name' => $event->getExchange(),
+                        'type' => $event->getExchangeType(),
+                    ],
+                    'headers'  => $event->getHeaders(),
                 ]
             );
 
