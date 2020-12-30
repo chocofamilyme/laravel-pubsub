@@ -78,6 +78,45 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
                 ]
             );
         }
+
+        $this->app->bind(
+            'Amqp',
+            function ($app) {
+                return new Amqp($app['queue'], $app['config']);
+            }
+        );
+
+        if (!class_exists('Amqp')) {
+            class_alias(AmqpFacade::class, 'Amqp');
+        }
+
+        $resolver = function () {
+            /**
+             * @var QueueManager $queue
+             * @psalm-suppress UndefinedInterfaceMethod
+             */
+            $queue = $this->app['queue'];
+
+            $queue->addConnector(
+                'rabbitmq',
+                function (): ConnectorInterface {
+                    return new RabbitMQConnector($this->app->make('events'));
+                }
+            );
+
+            $this->app->extend(
+                'events',
+                function (DispatcherContract $baseDispatcher) {
+                    return new Dispatcher($baseDispatcher, $this->app->get('queue'), $this->app->get('config'));
+                }
+            );
+        };
+
+        if ($this->app->resolved('queue')) {
+            $resolver();
+        } else {
+            $this->app->afterResolving('queue', $resolver);
+        }
     }
 
     /**
@@ -99,37 +138,6 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
                 . '/../../database/migrations/create_pubsub_events_table.php.stub' => $this->getMigrationFileName(),
             ],
             'migrations'
-        );
-
-        /**
-         * @var QueueManager $queue
-         * @psalm-suppress UndefinedInterfaceMethod
-         */
-        $queue = $this->app['queue'];
-
-        $queue->addConnector(
-            'rabbitmq',
-            function (): ConnectorInterface {
-                return new RabbitMQConnector($this->app->make('events'));
-            }
-        );
-
-        $this->app->bind(
-            'Amqp',
-            function ($app) {
-                return new Amqp($app['queue'], $app['config']);
-            }
-        );
-
-        if (!class_exists('Amqp')) {
-            class_alias(AmqpFacade::class, 'Amqp');
-        }
-
-        $this->app->extend(
-            'events',
-            function (DispatcherContract $baseDispatcher) {
-                return new Dispatcher($baseDispatcher, $this->app->get('queue'), $this->app->get('config'));
-            }
         );
     }
 
