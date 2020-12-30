@@ -128,7 +128,7 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
         $this->app->extend(
             'events',
             function (DispatcherContract $baseDispatcher) {
-                return new Dispatcher($baseDispatcher, $this->app->make('Amqp'));
+                return new Dispatcher($baseDispatcher, $this->app->get('queue'), $this->app->get('config'));
             }
         );
     }

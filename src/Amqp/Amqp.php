@@ -10,6 +10,9 @@ use Illuminate\Config\Repository;
 use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Queue\QueueManager;
 
+/**
+ * @deprecated
+ */
 class Amqp
 {
     protected Queue $rabbit;
@@ -46,6 +49,6 @@ class Amqp
 
     protected function isNeedJsonEncode($body): bool
     {
-        return !($this->rabbit instanceof RabbitMQQueue) && !is_string($body);
+        return !($this->rabbit instanceof RabbitMQQueue || is_string($body));
     }
 }

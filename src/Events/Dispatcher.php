@@ -3,40 +3,51 @@
 namespace Chocofamilyme\LaravelPubSub\Events;
 
 use Carbon\CarbonImmutable;
-use Chocofamilyme\LaravelPubSub\Amqp\Amqp;
+use Chocofamilyme\LaravelPubSub\Queue\RabbitMQQueue;
+use Closure;
+use Exception;
+use Illuminate\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
+use Illuminate\Contracts\Queue\Queue;
+use Illuminate\Queue\QueueManager;
+use Throwable;
 
-/**
- * Class WalletDispatcher
- *
- * @package App\Events
- */
+use function json_encode;
+
 class Dispatcher implements DispatcherContract
 {
     private DispatcherContract $dispatcher;
 
-    private Amqp $amqp;
+    protected Queue $rabbit;
 
-    public function __construct(DispatcherContract $eventDispatcher, Amqp $amqp)
-    {
+    public function __construct(
+        DispatcherContract $eventDispatcher,
+        QueueManager $queue,
+        Repository $config,
+        ?string $connection = null
+    ) {
         $this->dispatcher = $eventDispatcher;
-        $this->amqp = $amqp;
+
+        $connection   ??= $config->get('queue.default');
+        $this->rabbit = $queue->connection($connection);
     }
 
     /**
      * Dispatch an event and call the listeners.
      *
      * @param string|object $event
-     * @param mixed $payload
-     * @param bool $halt
+     * @param mixed         $payload
+     * @param bool          $halt
+     *
      * @return array|null
-     * @throws \Exception
+     * @throws Exception
      */
     public function dispatch($event, $payload = [], $halt = false)
     {
         if ($this->shouldBeSentToRabbitMQ($event)) {
             /** @var PublishEvent $event */
             $this->sendPublishEvent($event);
+
             return null;
         }
 
@@ -48,6 +59,7 @@ class Dispatcher implements DispatcherContract
      * Check wether should be sent to rabbitmq or the normal way
      *
      * @param $event
+     *
      * @return bool
      */
     private function shouldBeSentToRabbitMQ($event): bool
@@ -81,18 +93,19 @@ class Dispatcher implements DispatcherContract
         }
 
         try {
-            $eventPayload           = $event->getPayload();
-            $eventPayload['_event'] = $event->getName();
+            $payload           = $event->getPayload();
+            $payload['_event'] = $event->getName();
 
-            $this->amqp->publish(
+            if ($this->isNeedJsonEncode($payload)) {
+                $payload = json_encode($payload, JSON_THROW_ON_ERROR);
+            }
+
+            /** @psalm-suppress PossiblyInvalidArgument */
+            $this->rabbit->pushRaw(
+                $payload,
                 $event->getRoutingKey(),
-                $eventPayload,
                 [
-                    'exchange' => [
-                        'name' => $event->getExchange(),
-                        'type' => $event->getExchangeType(),
-                    ],
-                    'headers'  => $event->getHeaders()
+                    'headers' => $event->getHeaders(),
                 ]
             );
 
@@ -100,16 +113,22 @@ class Dispatcher implements DispatcherContract
                 $model->processed_at = CarbonImmutable::now();
                 $model->save();
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
         }
+    }
+
+    protected function isNeedJsonEncode($body): bool
+    {
+        return !($this->rabbit instanceof RabbitMQQueue || is_string($body));
     }
 
     /**
      * Register an event listener with the dispatcher.
      *
-     * @param \Closure|string|array $events
-     * @param \Closure|string|null $listener
+     * @param Closure|string|array $events
+     * @param Closure|string|null  $listener
+     *
      * @return void
      */
     public function listen($events, $listener = null)
@@ -121,6 +140,7 @@ class Dispatcher implements DispatcherContract
      * Determine if a given event has listeners.
      *
      * @param string $eventName
+     *
      * @return bool
      */
     public function hasListeners($eventName)
@@ -132,6 +152,7 @@ class Dispatcher implements DispatcherContract
      * Register an event subscriber with the dispatcher.
      *
      * @param object|string $subscriber
+     *
      * @return void
      */
     public function subscribe($subscriber)
@@ -143,7 +164,8 @@ class Dispatcher implements DispatcherContract
      * Dispatch an event until the first non-null response is returned.
      *
      * @param string|object $event
-     * @param mixed $payload
+     * @param mixed         $payload
+     *
      * @return array|null
      */
     public function until($event, $payload = [])
@@ -155,8 +177,9 @@ class Dispatcher implements DispatcherContract
      * Fire an event and call the listeners.
      *
      * @param string|object $event
-     * @param mixed $payload
-     * @param bool $halt
+     * @param mixed         $payload
+     * @param bool          $halt
+     *
      * @return array|null
      */
     public function fire($event, $payload = [], $halt = false)
@@ -168,7 +191,8 @@ class Dispatcher implements DispatcherContract
      * Register an event and payload to be fired later.
      *
      * @param string $event
-     * @param array $payload
+     * @param array  $payload
+     *
      * @return void
      */
     public function push($event, $payload = [])
@@ -180,6 +204,7 @@ class Dispatcher implements DispatcherContract
      * Flush a set of pushed events.
      *
      * @param string $event
+     *
      * @return void
      */
     public function flush($event)
@@ -191,6 +216,7 @@ class Dispatcher implements DispatcherContract
      * Remove a set of listeners from the dispatcher.
      *
      * @param string $event
+     *
      * @return void
      */
     public function forget($event)
@@ -212,7 +238,8 @@ class Dispatcher implements DispatcherContract
      * Dynamically pass methods to the default dispatcher.
      *
      * @param string $method
-     * @param array $parameters
+     * @param array  $parameters
+     *
      * @return mixed
      */
     public function __call($method, $parameters)
