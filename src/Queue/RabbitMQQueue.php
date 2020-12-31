@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 /** @noinspection PhpRedundantCatchClauseInspection */
 
 namespace Chocofamilyme\LaravelPubSub\Queue;
 
-use Chocofamilyme\LaravelPubSub\Amqp\Message\OutputMessage;
+use Chocofamilyme\LaravelPubSub\Message\OutputMessage;
+use Chocofamilyme\LaravelPubSub\Events\PublishEvent;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQLaravel;
 use Exception;
+use PhpAmqpLib\Exception\AMQPProtocolChannelException;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue as Queue;
 use Illuminate\Support\Arr;
@@ -60,6 +64,30 @@ class RabbitMQQueue extends Queue
 
     /**
      * {@inheritdoc}
+     *
+     * @throws AMQPProtocolChannelException
+     */
+    public function push($payload, $data = '', $queue = null)
+    {
+        return $this->pushRaw($payload, $queue, []);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @throws AMQPProtocolChannelException
+     */
+    public function pushOn($queue, $job, $data = '')
+    {
+        return $this->pushRaw(
+            $this->createObjectProperties($job),
+            $queue,
+            $this->createObjectProperties($job)
+        );
+    }
+
+    /**
+     * {@inheritdoc}
      * @throws Exception
      */
     public function pushRaw($payload, $queue = null, array $options = [])
@@ -97,8 +125,8 @@ class RabbitMQQueue extends Queue
 
     /**
      * @param array|string $payload
-     * @param array        $headers
-     * @param int          $attempts
+     * @param array $headers
+     * @param int $attempts
      *
      * @return array
      * @throws Exception
@@ -113,7 +141,7 @@ class RabbitMQQueue extends Queue
 
         return [
             $outputMessage->getMessage(),
-            $outputMessage->getMessage()->get_properties()['correlation_id'],
+            $outputMessage->getHeader('correlation_id'),
         ];
     }
 
@@ -136,5 +164,29 @@ class RabbitMQQueue extends Queue
             false,
             new AMQPTable($arguments)
         );
+    }
+
+    protected function createObjectPayload($job, $queue)
+    {
+        if ($job instanceof PublishEvent) {
+            return $job->getPayload();
+        }
+
+        return parent::createStringPayload($job, $queue);
+    }
+
+    protected function createObjectProperties($job): array
+    {
+        if ($job instanceof PublishEvent) {
+            return [
+                'exchange' => [
+                    'name' => $job->getExchange(),
+                    'type' => $job->getExchangeType(),
+                ],
+                'headers'  => $job->getHeaders(),
+            ];
+        }
+
+        return [];
     }
 }

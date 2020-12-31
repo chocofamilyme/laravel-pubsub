@@ -9,13 +9,11 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Class DurableEvent
- * @package Chocofamilyme\LaravelPubSub\Events
- *
  * @property string $id
  * @property string $name
  * @property array $payload
  * @property string $exchange
+ * @property string $exchange_type
  * @property string $routing_key
  * @property Carbon $created_at
  * @property Carbon|CarbonImmutable|string|null $processed_at

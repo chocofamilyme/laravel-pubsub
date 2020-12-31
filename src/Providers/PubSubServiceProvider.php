@@ -4,25 +4,18 @@ declare(strict_types=1);
 
 namespace Chocofamilyme\LaravelPubSub\Providers;
 
-use Chocofamilyme\LaravelPubSub\Amqp\Amqp;
-use Chocofamilyme\LaravelPubSub\Amqp\AmqpFacade;
 use Chocofamilyme\LaravelPubSub\Commands\EventListenCommand;
-use Chocofamilyme\LaravelPubSub\Events\Dispatcher;
 use Chocofamilyme\LaravelPubSub\Listener;
 use Illuminate\Contracts\Debug\ExceptionHandler;
-use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
-use Illuminate\Queue\Connectors\ConnectorInterface;
-use Illuminate\Queue\QueueManager;
 use Illuminate\Support\Collection;
-use VladimirYuldashev\LaravelQueueRabbitMQ\LaravelQueueRabbitMQServiceProvider;
-use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Connectors\RabbitMQConnector;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * Class PubSubServiceProvider
  *
  * @package Chocofamilyme\LaravelPubSub\Providers
  */
-class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
+class PubSubServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
@@ -31,8 +24,6 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
      */
     public function register(): void
     {
-        parent::register();
-
         // Merge our config with application config
         $this->mergeConfigFrom(
             __DIR__ . '/../config/queue.php',
@@ -78,45 +69,6 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
                 ]
             );
         }
-
-        $this->app->bind(
-            'Amqp',
-            function ($app) {
-                return new Amqp($app['queue'], $app['config']);
-            }
-        );
-
-        if (!class_exists('Amqp')) {
-            class_alias(AmqpFacade::class, 'Amqp');
-        }
-
-        $resolver = function () {
-            /**
-             * @var QueueManager $queue
-             * @psalm-suppress UndefinedInterfaceMethod
-             */
-            $queue = $this->app['queue'];
-
-            $queue->addConnector(
-                'rabbitmq',
-                function (): ConnectorInterface {
-                    return new RabbitMQConnector($this->app->make('events'));
-                }
-            );
-
-            $this->app->extend(
-                'events',
-                function (DispatcherContract $baseDispatcher) {
-                    return new Dispatcher($baseDispatcher, $this->app->get('queue'), $this->app->get('config'));
-                }
-            );
-        };
-
-        if ($this->app->resolved('queue')) {
-            $resolver();
-        } else {
-            $this->app->afterResolving('queue', $resolver);
-        }
     }
 
     /**
@@ -139,14 +91,6 @@ class PubSubServiceProvider extends LaravelQueueRabbitMQServiceProvider
             ],
             'migrations'
         );
-    }
-
-    /**
-     * @return array
-     */
-    public function provides()
-    {
-        return ['Amqp'];
     }
 
     /**
