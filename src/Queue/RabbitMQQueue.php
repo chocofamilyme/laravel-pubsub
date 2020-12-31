@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-/** @noinspection PhpRedundantCatchClauseInspection */
-
 namespace Chocofamilyme\LaravelPubSub\Queue;
 
 use Chocofamilyme\LaravelPubSub\Message\OutputMessage;
