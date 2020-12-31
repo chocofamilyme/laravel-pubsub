@@ -16,7 +16,7 @@ final class CreateModelListener
         if (!$event instanceof DurableEvent) {
             return;
         }
-        
+
         $event->prepare();
         $model = new EventModel(
             [
