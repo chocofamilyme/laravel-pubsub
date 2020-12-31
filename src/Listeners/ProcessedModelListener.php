@@ -9,7 +9,7 @@ use Chocofamilyme\LaravelPubSub\Broadcasting\Events\BroadcastEnded;
 use Chocofamilyme\LaravelPubSub\Events\DurableEvent;
 use Chocofamilyme\LaravelPubSub\Events\EventModel;
 
-final class ProccessedModelListener
+final class ProcessedModelListener
 {
     public function handle(BroadcastEnded $ended): void
     {

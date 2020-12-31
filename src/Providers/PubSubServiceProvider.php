@@ -9,7 +9,7 @@ use Chocofamilyme\LaravelPubSub\Broadcasting\Events\BroadcastStarted;
 use Chocofamilyme\LaravelPubSub\Commands\EventListenCommand;
 use Chocofamilyme\LaravelPubSub\Listener;
 use Chocofamilyme\LaravelPubSub\Listeners\CreateModelListener;
-use Chocofamilyme\LaravelPubSub\Listeners\ProccessedModelListener;
+use Chocofamilyme\LaravelPubSub\Listeners\ProcessedModelListener;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
@@ -101,7 +101,7 @@ class PubSubServiceProvider extends ServiceProvider
         $dispatcher = $this->app->make('events');
 
         $dispatcher->listen(BroadcastStarted::class, CreateModelListener::class);
-        $dispatcher->listen(BroadcastEnded::class, ProccessedModelListener::class);
+        $dispatcher->listen(BroadcastEnded::class, ProcessedModelListener::class);
     }
 
     /**
