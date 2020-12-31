@@ -30,62 +30,10 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
 
     public function broadcastOn()
     {
-        $durable = $this instanceof DurableEvent;
-
-        $this->prepare();
-//
-//        $model = new EventModel(
-//            [
-//                'id'          => $this->getEventId(),
-//                'type'        => EventModel::TYPE_PUB,
-//                'name'        => $this->getName(),
-//                'payload'     => $this->getPayload(),
-//                'exchange'    => $this->getExchange(),
-//                'routing_key' => $this->getRoutingKey(),
-//                'created_at'  => $this->getEventCreatedAt(),
-//            ]
-//        );
-//
-//        if ($durable) {
-//            $model->save();
-//        }
-//
-//        try {
-//            $payload           = $this->getPayload();
-//            $payload['_event'] = $this->getName();
-//
-//            if ($this->isNeedJsonEncode($payload)) {
-//                $payload = json_encode($payload, JSON_THROW_ON_ERROR);
-//            }
-//
-//            /** @psalm-suppress PossiblyInvalidArgument */
-//            $this->rabbit->pushRaw(
-//                $payload,
-//                $this->getRoutingKey(),
-//                [
-//                    'exchange' => [
-//                        'name' => $this->getExchange(),
-//                        'type' => $this->getExchangeType(),
-//                    ],
-//                    'headers'  => $this->getHeaders(),
-//                ]
-//            );
-//
-//            if ($durable) {
-//                $model->processed_at = CarbonImmutable::now();
-//                $model->save();
-//            }
-//        } catch (Throwable $e) {
-//            report($e);
-//        }
     }
 
-    //protected function isNeedJsonEncode($body): bool
-    //{
-    //    return !($this->rabbit instanceof RabbitMQQueue || is_string($body));
-    //}
 
-    protected function prepare(): void
+    public function prepare(): void
     {
         if (
             empty(static::EXCHANGE_NAME) ||

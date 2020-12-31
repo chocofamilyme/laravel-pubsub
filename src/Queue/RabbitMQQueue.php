@@ -79,8 +79,9 @@ class RabbitMQQueue extends Queue
      */
     public function pushOn($queue, $job, $data = '')
     {
+        $job = $job->event ? $job->event : $job;
         return $this->pushRaw(
-            $this->createObjectProperties($job),
+            $this->createObjectPayload($job, $queue),
             $queue,
             $this->createObjectProperties($job)
         );
@@ -172,7 +173,7 @@ class RabbitMQQueue extends Queue
             return $job->getPayload();
         }
 
-        return parent::createStringPayload($job, $queue);
+        return parent::createObjectPayload($job, $queue);
     }
 
     protected function createObjectProperties($job): array
