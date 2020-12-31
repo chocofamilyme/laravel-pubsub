@@ -39,7 +39,8 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Chocofamilyme\\LaravelPubSub\\Providers\\PubSubServiceProvider"
+        "Chocofamilyme\\LaravelPubSub\\Providers\\PubSubServiceProvider",
+        "Chocofamilyme\\LaravelPubSub\\Providers\\BroadcastServiceProvider"
       ]
     }
   },
