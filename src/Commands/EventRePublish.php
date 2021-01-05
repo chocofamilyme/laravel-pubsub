@@ -7,7 +7,6 @@ namespace Chocofamilyme\LaravelPubSub\Commands;
 use Carbon\CarbonImmutable;
 use Chocofamilyme\LaravelPubSub\Events\EventModel;
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\LazyCollection;
 
