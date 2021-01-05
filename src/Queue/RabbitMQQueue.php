@@ -69,7 +69,7 @@ class RabbitMQQueue extends Queue
      */
     public function push($job, $data = '', $queue = null)
     {
-        return $this->pushRaw($job, $queue, []);
+        return $this->pushRaw($this->createPayload($job, $queue, $data), $queue, []);
     }
 
     /**
