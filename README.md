@@ -19,8 +19,8 @@ php artisan vendor:publish --provider="Chocofamilyme\LaravelPubSub\Providers\Pub
   
 # Configurations
 ## AMQP (RabbitMQ) configuration
-AMQP configuration should be inserted into config/queue.php
-
+- Set environment BROADCAST_DRIVER = rabbitmq
+- AMQP configuration should be inserted into config/queue.php
 ```php
 'sync' => [  
 ...
@@ -75,6 +75,8 @@ AMQP configuration should be inserted into config/queue.php
   ],
 ]
 ```
+
+
 
 ### Params
 | Key                              | Value                  | Description  |  

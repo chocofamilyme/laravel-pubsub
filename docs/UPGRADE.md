@@ -1,5 +1,6 @@
 # Upgrade v5 -> v6
 - Update the event table to see the migration create_pubsub_events_table.php.stub. Added column exchange_type
+- Set environment BROADCAST_DRIVER = rabbitmq
 
 # Upgrade v3 -> v4
 
