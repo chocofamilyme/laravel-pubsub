@@ -6,9 +6,6 @@ Laravel pub/sub library allows you to publish, consume and process rabbit events
 composer require chocofamilyme/laravel-pubsub
 ```
 
-# Upgrade v5 -> v6
-Read upgrade guide [here](https://github.com/chocofamilyme/laravel-pubsub/blob/master/docs/UPGRADE.md)
-
 # Upgrade v3 -> v4
 Read upgrade guide [here](https://github.com/chocofamilyme/laravel-pubsub/blob/master/docs/UPGRADE.md)
 
@@ -218,6 +215,7 @@ class UserUpdatedEvent extends PublishEvent
     public string $name;
 
     public const EXCHANGE_NAME = 'exchangeName';
+    public const NAME          = 'UserUpdated';
     public const ROUTING_KEY   = 'user.updated';
 
     /**
@@ -231,5 +229,32 @@ class UserUpdatedEvent extends PublishEvent
         $this->id = $id;
         $this->name = $name;
     }
+
+    public function toPayload() : array 
+    {
+        return [
+            'user' => [
+                'id' => $this->id,
+                'name' => $this->name
+            ]
+        ];
+    }
 }
+```
+
+### Manual way
+```php
+Amqp::publish('route.test', ['bodyKey' => 'bodyValue'], [
+        'exchange' => [
+            'name' => 'test',
+            'type' => 'topic',
+        ],
+        'headers' => [
+            'application_headers' => [
+                'headerKey' => 'headerValue'
+            ],
+            'message_id' => 'uuid4',
+        ],
+    ]
+);  
 ```

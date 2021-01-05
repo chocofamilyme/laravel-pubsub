@@ -32,7 +32,6 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
     {
     }
 
-
     public function prepare(): void
     {
         if (

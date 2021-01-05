@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
+/** @noinspection PhpRedundantCatchClauseInspection */
+
 namespace Chocofamilyme\LaravelPubSub\Queue;
 
+use Carbon\CarbonImmutable;
+use Chocofamilyme\LaravelPubSub\Events\EventModel;
 use Chocofamilyme\LaravelPubSub\Message\OutputMessage;
 use Chocofamilyme\LaravelPubSub\Events\PublishEvent;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQLaravel;
@@ -77,12 +81,22 @@ class RabbitMQQueue extends Queue
      */
     public function pushOn($queue, $job, $data = '')
     {
-        $job = $job->event ? $job->event : $job;
-        return $this->pushRaw(
-            $this->createObjectPayload($job, $queue),
+        $event = $job->event ? $job->event : $job;
+
+        $eventModel = $this->persist($event);
+
+        $correlationId = $this->pushRaw(
+            $eventModel->payload,
             $queue,
-            $this->createObjectProperties($job)
+            $eventModel->amqpProperties()
         );
+
+        if ($eventModel->isDurable()) {
+            $eventModel->processed_at = CarbonImmutable::now();
+            $eventModel->update();
+        }
+
+        return $correlationId;
     }
 
     /**
@@ -165,27 +179,45 @@ class RabbitMQQueue extends Queue
         );
     }
 
+    /**
+     * @param object $job
+     * @param string $queue
+     * @return array
+     */
     protected function createObjectPayload($job, $queue)
     {
-        if ($job instanceof PublishEvent) {
-            return $job->getPayload();
+        if ($job instanceof EventModel) {
+            return $job->payload;
         }
 
         return parent::createObjectPayload($job, $queue);
     }
 
-    protected function createObjectProperties($job): array
+    protected function persist(PublishEvent $event): EventModel
     {
-        if ($job instanceof PublishEvent) {
-            return [
-                'exchange' => [
-                    'name' => $job->getExchange(),
-                    'type' => $job->getExchangeType(),
-                ],
-                'headers'  => $job->getHeaders(),
-            ];
+        $event->prepare();
+
+        $model = new EventModel();
+
+        $model->setOriginalEvent($event);
+        $model->setRawAttributes(
+            [
+                'id'            => $event->getEventId(),
+                'type'          => EventModel::TYPE_PUB,
+                'name'          => $event->getName(),
+                'payload'       => $event->getPayload(),
+                'headers'       => $event->getHeaders(),
+                'exchange'      => $event->getExchange(),
+                'exchange_type' => $event->getExchangeType(),
+                'routing_key'   => $event->getRoutingKey(),
+                'created_at'    => $event->getEventCreatedAt(),
+            ]
+        );
+
+        if ($model->isDurable()) {
+            $model->saveOrFail();
         }
 
-        return [];
+        return $model;
     }
 }

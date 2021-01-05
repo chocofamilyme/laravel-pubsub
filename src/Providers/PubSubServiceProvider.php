@@ -8,8 +8,7 @@ use Chocofamilyme\LaravelPubSub\Broadcasting\Events\BroadcastEnded;
 use Chocofamilyme\LaravelPubSub\Broadcasting\Events\BroadcastStarted;
 use Chocofamilyme\LaravelPubSub\Commands\EventListenCommand;
 use Chocofamilyme\LaravelPubSub\Listener;
-use Chocofamilyme\LaravelPubSub\Listeners\CreateModelListener;
-use Chocofamilyme\LaravelPubSub\Listeners\ProcessedModelListener;
+use Chocofamilyme\LaravelPubSub\Listeners\ProccessedModelListener;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
@@ -96,12 +95,6 @@ class PubSubServiceProvider extends ServiceProvider
             ],
             'migrations'
         );
-
-        /** @var Dispatcher $dispatcher */
-        $dispatcher = $this->app->make('events');
-
-        $dispatcher->listen(BroadcastStarted::class, CreateModelListener::class);
-        $dispatcher->listen(BroadcastEnded::class, ProcessedModelListener::class);
     }
 
     /**

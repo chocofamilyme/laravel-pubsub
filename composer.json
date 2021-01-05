@@ -11,8 +11,8 @@
   "license": "BSD-3-Clause",
   "authors": [
     {
-      "name": "IT Chocolife.me",
-      "homepage": "https://chocolife.me"
+      "name": "IT Chocofamily",
+      "homepage": "https://chocofamily.kz"
     }
   ],
   "require": {
@@ -39,8 +39,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Chocofamilyme\\LaravelPubSub\\Providers\\PubSubServiceProvider",
-        "Chocofamilyme\\LaravelPubSub\\Providers\\BroadcastServiceProvider"
+        "Chocofamilyme\\LaravelPubSub\\Providers\\PubSubServiceProvider"
       ]
     }
   },
