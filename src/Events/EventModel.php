@@ -71,7 +71,7 @@ class EventModel extends Model
                 'name' => $this->exchange,
                 'type' => $this->exchange_type,
             ],
-            'headers'  => $this->headers,
+            'headers'  => $this->headers ?? [],
         ];
     }
 }
