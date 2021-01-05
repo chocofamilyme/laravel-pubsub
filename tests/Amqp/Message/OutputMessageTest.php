@@ -1,14 +1,11 @@
 <?php
 
-/**
- * @package Chocolife.me
- * @author  Moldabayev Vadim <moldabayev.v@chocolife.kz>
- */
+declare(strict_types=1);
 
 namespace Chocofamily\LaravelPubSub\Tests\Amqp\Message;
 
 use Chocofamily\LaravelPubSub\Tests\TestCase;
-use Chocofamilyme\LaravelPubSub\Amqp\Message\OutputMessage;
+use Chocofamilyme\LaravelPubSub\Message\OutputMessage;
 use PhpAmqpLib\Message\AMQPMessage;
 use Ramsey\Uuid\Uuid;
 
@@ -17,16 +14,16 @@ class OutputMessageTest extends TestCase
     /**
      * @throws \Exception
      */
-    public function testGetMessage()
+    public function testGetMessage(): void
     {
         $body = [
-            'keyBody'  => 'valueBody',
-            'event_id' => Uuid::uuid4()->toString(),
+            'keyBody' => 'valueBody',
         ];
 
         $header = [
             'keyCustomHeader' => 'valueCustomHeader',
             'correlation_id'  => Uuid::uuid4()->toString(),
+            'message_id'      => Uuid::uuid4()->toString(),
         ];
 
         $attempts = 1;
@@ -36,7 +33,7 @@ class OutputMessageTest extends TestCase
 
         $this->assertEquals(
             $message->getBody(),
-            \json_encode($body),
+            \json_encode($body, JSON_THROW_ON_ERROR),
             'Message body is not correct'
         );
 
@@ -54,7 +51,7 @@ class OutputMessageTest extends TestCase
 
         $this->assertEquals(
             $message->get_properties()['message_id'],
-            $body['event_id'],
+            $header['message_id'],
             'Message id is not correct'
         );
 

@@ -77,7 +77,6 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
      */
     public function getPayload(): array
     {
-        $this->prepare();
         return array_merge(
             $this->toPayload(),
             [
@@ -115,6 +114,8 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
 
     public function broadcastQueue(): string
     {
+        $this->prepare();
+
         return $this->getRoutingKey();
     }
 
