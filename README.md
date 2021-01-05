@@ -6,6 +6,9 @@ Laravel pub/sub library allows you to publish, consume and process rabbit events
 composer require chocofamilyme/laravel-pubsub
 ```
 
+# Upgrade v5 -> v6
+Read upgrade guide [here](https://github.com/chocofamilyme/laravel-pubsub/blob/master/docs/UPGRADE.md)
+
 # Upgrade v3 -> v4
 Read upgrade guide [here](https://github.com/chocofamilyme/laravel-pubsub/blob/master/docs/UPGRADE.md)
 
@@ -16,8 +19,8 @@ php artisan vendor:publish --provider="Chocofamilyme\LaravelPubSub\Providers\Pub
   
 # Configurations
 ## AMQP (RabbitMQ) configuration
-AMQP configuration should be inserted into config/queue.php
-
+- Set environment BROADCAST_DRIVER = rabbitmq
+- AMQP configuration should be inserted into config/queue.php
 ```php
 'sync' => [  
 ...
@@ -66,13 +69,14 @@ AMQP configuration should be inserted into config/queue.php
           'bind' => false,
        ],  
       'exchange' => [  
-          'declare' => true,
-          'name' => 'twogis',  
+          'declare' => false,
+          'name' => 'exchange-name',  
       ],  
   ],
-  ],  
 ]
 ```
+
+
 
 ### Params
 | Key                              | Value                  | Description  |  
@@ -213,9 +217,7 @@ PS: Please note that you need to override toPayload() method returning array tha
 
 namespace App\Events;
 
-use Carbon\CarbonImmutable;
 use Chocofamilyme\LaravelPubSub\Events\PublishEvent;
-use Chocofamilyme\LaravelPubSub\Events\SendToRabbitMQAbstract;
 
 class UserUpdatedEvent extends PublishEvent
 {

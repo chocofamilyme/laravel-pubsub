@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Chocofamilyme\LaravelPubSub\Amqp\Message;
+namespace Chocofamilyme\LaravelPubSub\Message;
 
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
@@ -27,7 +27,7 @@ class OutputMessage implements MessageInterface
      *
      * @param array $body
      * @param array $headers
-     * @param int   $attempts
+     * @param int $attempts
      *
      * @throws \Exception
      */
@@ -36,7 +36,7 @@ class OutputMessage implements MessageInterface
         $this->body = $body;
         $this->initHeaders($body, $headers);
 
-        $this->message = new AMQPMessage(\json_encode($this->getBody()), $this->headers);
+        $this->message = new AMQPMessage(\json_encode($this->getBody(), JSON_THROW_ON_ERROR), $this->headers);
         $this->message->set('application_headers', $this->createTable($headers, $attempts));
     }
 
@@ -61,18 +61,18 @@ class OutputMessage implements MessageInterface
      */
     private function initHeaders(array $body, array $headers = [])
     {
-        $this->headers['message_id']     = $body['event_id'] ?? Uuid::uuid4()->toString();
-        $this->headers['correlation_id'] = $headers['correlation_id'] ?? Uuid::uuid4()->toString();
-
         $this->headers = array_merge(
             $this->headers,
             $headers
         );
+
+        $this->headers['message_id']     ??= Uuid::uuid4()->toString();
+        $this->headers['correlation_id'] ??= Uuid::uuid4()->toString();
     }
 
     /**
      * @param array $headers
-     * @param int   $attempts
+     * @param int $attempts
      *
      * @return AMQPTable
      */

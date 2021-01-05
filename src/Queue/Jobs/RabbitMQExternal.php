@@ -10,7 +10,6 @@ use Chocofamilyme\LaravelPubSub\Exceptions\NotFoundListenerException;
 use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
 use Illuminate\Container\Container;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use PhpAmqpLib\Message\AMQPMessage;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
@@ -24,10 +23,7 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
  */
 class RabbitMQExternal extends RabbitMQLaravel
 {
-    /**
-     * @var EventRouter
-     */
-    protected $eventRouter;
+    protected EventRouter $eventRouter;
 
     /**
      * ListenerMQJob constructor.
@@ -70,15 +66,17 @@ class RabbitMQExternal extends RabbitMQLaravel
         $listeners = $this->eventRouter->getListeners($this->getName());
 
         if ($this->isSubscribeRecordEnabled()) {
-            $model = new EventModel([
-                'id'            => $this->getEventId(),
-                'type'          => EventModel::TYPE_SUB,
-                'name'          => $this->getName(),
-                'payload'       => $payload,
-                'exchange'      => $this->message->getExchange(),
-                'routing_key'   => $this->message->getRoutingKey(),
-                'created_at'    => CarbonImmutable::now()->toDateTimeString()
-            ]);
+            $model = new EventModel(
+                [
+                    'id'          => $this->getEventId(),
+                    'type'        => EventModel::TYPE_SUB,
+                    'name'        => $this->getName(),
+                    'payload'     => $payload,
+                    'exchange'    => $this->message->getExchange(),
+                    'routing_key' => $this->message->getRoutingKey(),
+                    'created_at'  => CarbonImmutable::now()->toDateTimeString(),
+                ]
+            );
             $model->save();
         }
 
@@ -91,6 +89,7 @@ class RabbitMQExternal extends RabbitMQLaravel
     {
         return config('pubsub.record_sub_events', false);
     }
+
     /**
      * Get the name of the queued job class.
      *
@@ -98,8 +97,13 @@ class RabbitMQExternal extends RabbitMQLaravel
      */
     public function getName(): string
     {
-        /** @psalm-suppress InternalProperty */
-        return $this->payload()['_event'] ?? Arr::get($this->message->delivery_info, 'routing_key');
+        $name = $this->payload()['_event'] ?? $this->message->getRoutingKey();
+
+        if (null === $name) {
+            throw new \RuntimeException("The name is not defined");
+        }
+
+        return $name;
     }
 
     public function getEventId(): string
@@ -110,10 +114,12 @@ class RabbitMQExternal extends RabbitMQLaravel
     public function failed($e)
     {
         if ($this->isSubscribeRecordEnabled()) {
-            EventModel::where('id', $this->getEventId())->update([
-                'exception' => (string) $e,
-                'failed_at' => CarbonImmutable::now()->toDateTimeString()
-            ]);
+            EventModel::where('id', $this->getEventId())->update(
+                [
+                    'exception' => (string)$e,
+                    'failed_at' => CarbonImmutable::now()->toDateTimeString(),
+                ]
+            );
         }
     }
 }

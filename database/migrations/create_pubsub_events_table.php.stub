@@ -18,9 +18,11 @@ class CreatePubsubEventsTable extends Migration
         Schema::create($tableNames['events'], function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('type', 3);
-            $table->string('name', 50);
+            $table->string('name');
             $table->jsonb('payload');
+            $table->jsonb('headers')->nullable();
             $table->string('exchange', 10)->nullable();
+            $table->string('exchange_type', 20)->nullable();
             $table->string('routing_key', 50);
             $table->timestamp('created_at');
             $table->timestamp('processed_at')->nullable();

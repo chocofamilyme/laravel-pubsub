@@ -6,7 +6,7 @@ namespace Chocofamilyme\LaravelPubSub\Events;
 
 use Carbon\CarbonImmutable;
 use Chocofamilyme\LaravelPubSub\Exceptions\InvalidEventDeclarationException;
-use Illuminate\Support\Carbon;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Support\Str;
 
 /**
@@ -14,26 +14,40 @@ use Illuminate\Support\Str;
  *
  * Abstract class for publishing events
  */
-abstract class PublishEvent implements SendToRabbitMQInterface
+abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
 {
+    protected const EXCHANGE_TYPE = 'topic';
     protected const EXCHANGE_NAME = null;
-    protected const NAME = null;
-    protected const ROUTING_KEY = null;
+    protected const NAME          = null;
+    protected const ROUTING_KEY   = null;
 
     private string $eventId;
     private string $eventCreatedAt;
 
+    public $afterCommit = true;
+
+    public function broadcastOn()
+    {
+        return [];
+    }
+
+    /**
+     * @psalm-suppress RedundantPropertyInitializationCheck
+     * @throws InvalidEventDeclarationException
+     */
     public function prepare(): void
     {
         if (
             empty(static::EXCHANGE_NAME) ||
             empty(static::ROUTING_KEY)
         ) {
-            throw new InvalidEventDeclarationException("Pubsub events must override constants EXCHANGE_NAME, ROUTING_KEY");
+            throw new InvalidEventDeclarationException(
+                "Pubsub events must override constants EXCHANGE_NAME, ROUTING_KEY"
+            );
         }
 
-        $this->eventId = Str::uuid()->toString();
-        $this->eventCreatedAt = CarbonImmutable::now()->toDateTimeString();
+        $this->eventId        ??= Str::uuid()->toString();
+        $this->eventCreatedAt ??= CarbonImmutable::now()->toDateTimeString();
     }
 
     /**
@@ -45,20 +59,32 @@ abstract class PublishEvent implements SendToRabbitMQInterface
      */
     public function getExchangeType(): string
     {
-        return 'topic';
+        return static::EXCHANGE_TYPE;
     }
 
     /**
-     * Message payload
-     *
      * @return array
+     * @throws InvalidEventDeclarationException
+     */
+    public function broadcastWith(): array
+    {
+        return $this->getPayload();
+    }
+
+    /**
+     * @return array
+     * @throws InvalidEventDeclarationException
      */
     public function getPayload(): array
     {
-        return array_merge($this->toPayload(), [
-            '_eventId' => $this->getEventId(),
-            '_eventCreatedAt' => $this->getEventCreatedAt(),
-        ]);
+        return array_merge(
+            $this->toPayload(),
+            [
+                '_eventId'        => $this->getEventId(),
+                '_eventCreatedAt' => $this->getEventCreatedAt(),
+                '_event'          => $this->getName(),
+            ]
+        );
     }
 
     public function toPayload(): array
@@ -86,6 +112,13 @@ abstract class PublishEvent implements SendToRabbitMQInterface
         return static::ROUTING_KEY;
     }
 
+    public function broadcastQueue(): string
+    {
+        $this->prepare();
+
+        return $this->getRoutingKey();
+    }
+
     /**
      * Event id
      *
@@ -101,8 +134,12 @@ abstract class PublishEvent implements SendToRabbitMQInterface
      */
     public function getName(): string
     {
-        return static::NAME ?? last(explode('\\', static::class));
-        ;
+        return static::NAME ?? static::class;
+    }
+
+    public function broadcastAs(): string
+    {
+        return $this->getName();
     }
 
     public function getHeaders(): array

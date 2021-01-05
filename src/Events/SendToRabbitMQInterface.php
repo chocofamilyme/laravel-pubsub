@@ -2,6 +2,8 @@
 
 namespace Chocofamilyme\LaravelPubSub\Events;
 
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+
 interface SendToRabbitMQInterface
 {
     /**
@@ -37,6 +39,4 @@ interface SendToRabbitMQInterface
     public function getPayload(): array;
 
     public function getEventCreatedAt(): string;
-
-    public function prepare(): void;
 }

@@ -1,12 +1,16 @@
 <?php
 
-/** @noinspection PhpRedundantCatchClauseInspection */
+declare(strict_types=1);
 
 namespace Chocofamilyme\LaravelPubSub\Queue;
 
-use Chocofamilyme\LaravelPubSub\Amqp\Message\OutputMessage;
+use Carbon\CarbonImmutable;
+use Chocofamilyme\LaravelPubSub\Events\EventModel;
+use Chocofamilyme\LaravelPubSub\Message\OutputMessage;
+use Chocofamilyme\LaravelPubSub\Events\PublishEvent;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQLaravel;
-use Illuminate\Contracts\Queue\Queue as QueueContract;
+use Exception;
+use PhpAmqpLib\Exception\AMQPProtocolChannelException;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue as Queue;
 use Illuminate\Support\Arr;
@@ -14,7 +18,7 @@ use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Wire\AMQPTable;
 
-class RabbitMQQueue extends Queue implements QueueContract
+class RabbitMQQueue extends Queue
 {
     /**
      * The RabbitMQ connection instance.
@@ -60,7 +64,46 @@ class RabbitMQQueue extends Queue implements QueueContract
 
     /**
      * {@inheritdoc}
-     * @throws \Exception
+     * @psalm-suppress PossiblyInvalidArgument
+     * @psalm-suppress PossiblyNullArgument
+     * @throws AMQPProtocolChannelException
+     */
+    public function push($job, $data = '', $queue = null)
+    {
+        return $this->pushRaw($this->createPayload($job, $queue, $data), $queue, []);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @psalm-suppress InvalidPropertyFetch
+     * @psalm-suppress InvalidArgument
+     *
+     * @throws AMQPProtocolChannelException
+     */
+    public function pushOn($queue, $job, $data = '')
+    {
+        $event = $job->event ? $job->event : $job;
+
+        $eventModel = $this->persist($event);
+
+        $correlationId = $this->pushRaw(
+            $eventModel->payload,
+            $queue,
+            $eventModel->amqpProperties()
+        );
+
+        if ($eventModel->isDurable()) {
+            $eventModel->processed_at = CarbonImmutable::now();
+            $eventModel->update();
+        }
+
+        return $correlationId;
+    }
+
+    /**
+     * {@inheritdoc}
+     * @throws Exception
      */
     public function pushRaw($payload, $queue = null, array $options = [])
     {
@@ -101,19 +144,19 @@ class RabbitMQQueue extends Queue implements QueueContract
      * @param int          $attempts
      *
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getMessage($payload, array $headers = [], int $attempts = 0): array
     {
         if (is_string($payload)) {
-            $payload = json_decode($payload, true);
+            $payload = \json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
         }
 
         $outputMessage = new OutputMessage($payload, $headers, $attempts);
 
         return [
             $outputMessage->getMessage(),
-            $outputMessage->getMessage()->get_properties()['correlation_id'],
+            $outputMessage->getHeader('correlation_id'),
         ];
     }
 
@@ -136,5 +179,48 @@ class RabbitMQQueue extends Queue implements QueueContract
             false,
             new AMQPTable($arguments)
         );
+    }
+
+    /**
+     * @param object $job
+     * @param string $queue
+     *
+     * @return array
+     */
+    protected function createObjectPayload($job, $queue)
+    {
+        if ($job instanceof EventModel) {
+            return $job->payload;
+        }
+
+        return parent::createObjectPayload($job, $queue);
+    }
+
+    protected function persist(PublishEvent $event): EventModel
+    {
+        $event->prepare();
+
+        $model = new EventModel();
+
+        $model->setOriginalEvent($event);
+        $model->setRawAttributes(
+            [
+                'id'            => $event->getEventId(),
+                'type'          => EventModel::TYPE_PUB,
+                'name'          => $event->getName(),
+                'payload'       => \json_encode($event->getPayload(), JSON_THROW_ON_ERROR),
+                'headers'       => \json_encode($event->getHeaders(), JSON_THROW_ON_ERROR),
+                'exchange'      => $event->getExchange(),
+                'exchange_type' => $event->getExchangeType(),
+                'routing_key'   => $event->getRoutingKey(),
+                'created_at'    => $event->getEventCreatedAt(),
+            ]
+        );
+
+        if ($model->isDurable()) {
+            $model->saveOrFail();
+        }
+
+        return $model;
     }
 }

@@ -1,9 +1,6 @@
 <?php
 
-/**
- * @package Chocolife.me
- * @author  Moldabayev Vadim <moldabayev.v@chocolife.kz>
- */
+declare(strict_types=1);
 
 namespace Chocofamily\LaravelPubSub\Tests;
 
@@ -17,7 +14,6 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
 class RabbitMQListenerTest extends TestCase
 {
-
     /** @var RabbitMQQueue $rabbitmq */
     private $rabbitmq;
 
@@ -25,24 +21,27 @@ class RabbitMQListenerTest extends TestCase
     {
         parent::setUp();
 
-        $this->app['config']->set('pubsub.listen', [
+        $this->app['config']->set(
+            'pubsub.listen',
+            [
                 'test.route' => [
                     TestListener::class,
                 ],
-            ]);
+            ]
+        );
 
         $this->app['config']->set('queue', require __DIR__ . '/config/queue.php');
 
-        $this->rabbitmq  = $this->createMock(RabbitMQQueue::class);
+        $this->rabbitmq = $this->createMock(RabbitMQQueue::class);
         $this->rabbitmq->method('ack');
     }
 
-    public function testItFire()
+    public function testItFire(): void
     {
-        $body    = json_encode('test');
+        $body    = json_encode('test', JSON_THROW_ON_ERROR);
         $message = new AMQPMessage($body);
 
-        $message->delivery_info['routing_key'] = 'test.route';
+        $message->setDeliveryInfo('', '', '', 'test.route');
 
         $rabbitMQListener = new RabbitMQExternal(
             $this->app,
@@ -62,12 +61,12 @@ class RabbitMQListenerTest extends TestCase
         $this->assertEquals(CallQueuedHandler::class, get_class($rabbitMQListener->getResolvedJob()));
     }
 
-    public function testGetNameOldFormat()
+    public function testGetNameOldFormat(): void
     {
-        $body    = json_encode('test');
+        $body    = json_encode('test', JSON_THROW_ON_ERROR);
         $message = new AMQPMessage($body);
 
-        $message->delivery_info['routing_key'] = 'test.route';
+        $message->setDeliveryInfo('', '', '', 'test.route');
 
         $rabbitMQListener = new RabbitMQExternal(
             $this->app,
@@ -85,13 +84,13 @@ class RabbitMQListenerTest extends TestCase
         $this->assertEquals('test.route', $rabbitMQListener->getName());
     }
 
-    public function testGetName()
+    public function testGetName(): void
     {
         $eventName = 'eventName';
-        $body    = json_encode(['name' => 'test', '_event' => $eventName]);
-        $message = new AMQPMessage($body);
+        $body      = json_encode(['name' => 'test', '_event' => $eventName], JSON_THROW_ON_ERROR);
+        $message   = new AMQPMessage($body);
 
-        $message->delivery_info['routing_key'] = 'test.route';
+        $message->setDeliveryInfo('', '', '', 'test.route');
 
         $rabbitMQListener = new RabbitMQExternal(
             $this->app,

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Chocofamilyme\LaravelPubSub\Amqp\Message;
+namespace Chocofamilyme\LaravelPubSub\Message;
 
 interface MessageInterface
 {
