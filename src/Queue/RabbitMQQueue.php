@@ -65,6 +65,7 @@ class RabbitMQQueue extends Queue
     /**
      * {@inheritdoc}
      * @psalm-suppress PossiblyInvalidArgument
+     * @psalm-suppress PossiblyNullArgument
      * @throws AMQPProtocolChannelException
      */
     public function push($job, $data = '', $queue = null)
