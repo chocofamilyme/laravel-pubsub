@@ -89,7 +89,18 @@ class PubSubServiceProvider extends ServiceProvider
         $this->publishes(
             [
                 __DIR__
-                . '/../../database/migrations/create_pubsub_events_table.php.stub' => $this->getMigrationFileName(),
+                . '/../../database/migrations/create_pubsub_events_table.php.stub' => $this->getMigrationFileName(
+                    '_create_pubsub_events_table.php'
+                ),
+            ],
+            'migrations'
+        );
+        $this->publishes(
+            [
+                __DIR__
+                . '/../../database/migrations/update_pubsub_events_table_add_failed_columns.php.stub' => $this->getMigrationFileName(
+                    '_update_pubsub_events_table_add_failed_columns.php'
+                ),
             ],
             'migrations'
         );
@@ -98,20 +109,17 @@ class PubSubServiceProvider extends ServiceProvider
     /**
      * Returns existing migration file if found, else uses the current timestamp.
      *
+     * @param string $fileNameSuffix
      * @return string
      */
-    protected function getMigrationFileName(): string
+    protected function getMigrationFileName(string $fileNameSuffix): string
     {
         $timestamp = date('Y_m_d_His');
 
-        $filenameSuffix = '_create_pubsub_events_table.php';
-
         return Collection::make($this->app->databasePath() . DIRECTORY_SEPARATOR . 'migrations' . DIRECTORY_SEPARATOR)
-            ->flatMap(
-                function ($path) use ($filenameSuffix) {
-                    return glob($path . '*' . $filenameSuffix);
-                }
-            )->push($this->app->databasePath() . "/migrations/{$timestamp}{$filenameSuffix}")
+            ->flatMap(function ($path) use ($fileNameSuffix) {
+                return glob($path . '*' . $fileNameSuffix);
+            })->push($this->app->databasePath() . "/migrations/{$timestamp}{$fileNameSuffix}")
             ->first();
     }
 }
