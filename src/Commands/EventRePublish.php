@@ -9,6 +9,7 @@ use Chocofamilyme\LaravelPubSub\Events\EventModel;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Queue\QueueManager;
+use Illuminate\Support\LazyCollection;
 
 /**
  * Class EventRePublish
@@ -49,25 +50,35 @@ final class EventRePublish extends Command
     {
         $events = EventModel::whereNull('processed_at')->where('type', 'pub')->orderBy('created_at');
 
+        $progress = $this->output->createProgressBar($events->count());
+        $progress->start();
+
         $events
             ->cursor()
             ->chunk(self::CHUNK_SIZE)
             ->each(
-                function (EventModel $eventModel) {
-                    try {
-                        $this->queue->connection()->pushRaw(
-                            $eventModel->payload,
-                            $eventModel->routing_key,
-                            $eventModel->amqpProperties(),
-                        );
+                function (LazyCollection $collection) use ($progress) {
+                    /** @var EventModel $eventModel */
+                    foreach ($collection as $eventModel) {
+                        try {
+                            $this->queue->connection()->pushRaw(
+                                $eventModel->payload,
+                                $eventModel->routing_key,
+                                $eventModel->amqpProperties(),
+                            );
 
-                        $eventModel->processed_at = CarbonImmutable::now();
-                        $eventModel->update();
-                    } catch (\Throwable $e) {
-                        report($e);
+                            $eventModel->processed_at = CarbonImmutable::now();
+                            $eventModel->update();
+                        } catch (\Throwable $e) {
+                            report($e);
+                        }
                     }
+
+                    $progress->advance($collection->count());
                 }
             );
+
+        $progress->finish();
 
         return 0;
     }
