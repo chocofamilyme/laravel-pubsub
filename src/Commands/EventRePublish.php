@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Application\Console\Commands;
+namespace Chocofamilyme\LaravelPubSub\Commands;
 
-use Carbon\CarbonImmutable;
 use Chocofamilyme\LaravelPubSub\Events\EventModel;
-use Illuminate\Broadcasting\BroadcastEvent;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Events\Dispatcher;
 

@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-/** @noinspection PhpRedundantCatchClauseInspection */
-
 namespace Chocofamilyme\LaravelPubSub\Queue;
 
 use Carbon\CarbonImmutable;
@@ -205,8 +203,8 @@ class RabbitMQQueue extends Queue
                 'id'            => $event->getEventId(),
                 'type'          => EventModel::TYPE_PUB,
                 'name'          => $event->getName(),
-                'payload'       => $event->getPayload(),
-                'headers'       => $event->getHeaders(),
+                'payload'       => \json_encode($event->getPayload(), JSON_THROW_ON_ERROR),
+                'headers'       => \json_encode($event->getHeaders(), JSON_THROW_ON_ERROR),
                 'exchange'      => $event->getExchange(),
                 'exchange_type' => $event->getExchangeType(),
                 'routing_key'   => $event->getRoutingKey(),

@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Chocofamilyme\LaravelPubSub\Providers;
 
-use Chocofamilyme\LaravelPubSub\Broadcasting\Events\BroadcastEnded;
-use Chocofamilyme\LaravelPubSub\Broadcasting\Events\BroadcastStarted;
+use Chocofamilyme\LaravelPubSub\Commands\EventRePublish;
 use Chocofamilyme\LaravelPubSub\Commands\EventListenCommand;
 use Chocofamilyme\LaravelPubSub\Listener;
-use Chocofamilyme\LaravelPubSub\Listeners\ProccessedModelListener;
 use Illuminate\Contracts\Debug\ExceptionHandler;
-use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 
@@ -70,6 +67,7 @@ class PubSubServiceProvider extends ServiceProvider
             $this->commands(
                 [
                     EventListenCommand::class,
+                    EventRePublish::class,
                 ]
             );
         }

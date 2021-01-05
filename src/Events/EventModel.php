@@ -7,7 +7,6 @@ namespace Chocofamilyme\LaravelPubSub\Events;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\EventSourcing\StoredEvents\ShouldBeStored;
 
 /**
  * @property string $id

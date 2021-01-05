@@ -6,9 +6,7 @@ namespace Chocofamilyme\LaravelPubSub\Events;
 
 use Carbon\CarbonImmutable;
 use Chocofamilyme\LaravelPubSub\Exceptions\InvalidEventDeclarationException;
-use Chocofamilyme\LaravelPubSub\Queue\RabbitMQQueue;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
