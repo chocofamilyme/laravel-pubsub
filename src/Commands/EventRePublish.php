@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chocofamilyme\LaravelPubSub\Commands;
 
+use Carbon\CarbonImmutable;
 use Chocofamilyme\LaravelPubSub\Events\EventModel;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -59,6 +60,9 @@ final class EventRePublish extends Command
                             $eventModel->routing_key,
                             $eventModel->amqpProperties(),
                         );
+
+                        $eventModel->processed_at = CarbonImmutable::now();
+                        $eventModel->update();
                     } catch (\Throwable $e) {
                         report($e);
                     }
