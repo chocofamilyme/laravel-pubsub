@@ -28,8 +28,13 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
 
     public function broadcastOn()
     {
+        return [];
     }
 
+    /**
+     * @psalm-suppress RedundantPropertyInitializationCheck
+     * @throws InvalidEventDeclarationException
+     */
     public function prepare(): void
     {
         if (
@@ -57,15 +62,18 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
         return static::EXCHANGE_TYPE;
     }
 
+    /**
+     * @return array
+     * @throws InvalidEventDeclarationException
+     */
     public function broadcastWith(): array
     {
-        $this->getPayload();
+        return $this->getPayload();
     }
 
     /**
-     * Message payload
-     *
      * @return array
+     * @throws InvalidEventDeclarationException
      */
     public function getPayload(): array
     {

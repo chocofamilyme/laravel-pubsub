@@ -64,16 +64,19 @@ class RabbitMQQueue extends Queue
 
     /**
      * {@inheritdoc}
-     *
+     * @psalm-suppress PossiblyInvalidArgument
      * @throws AMQPProtocolChannelException
      */
-    public function push($payload, $data = '', $queue = null)
+    public function push($job, $data = '', $queue = null)
     {
-        return $this->pushRaw($payload, $queue, []);
+        return $this->pushRaw($job, $queue, []);
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @psalm-suppress InvalidPropertyFetch
+     * @psalm-suppress InvalidArgument
      *
      * @throws AMQPProtocolChannelException
      */
@@ -136,8 +139,8 @@ class RabbitMQQueue extends Queue
 
     /**
      * @param array|string $payload
-     * @param array $headers
-     * @param int $attempts
+     * @param array        $headers
+     * @param int          $attempts
      *
      * @return array
      * @throws Exception
@@ -180,6 +183,7 @@ class RabbitMQQueue extends Queue
     /**
      * @param object $job
      * @param string $queue
+     *
      * @return array
      */
     protected function createObjectPayload($job, $queue)

@@ -6,6 +6,9 @@ Laravel pub/sub library allows you to publish, consume and process rabbit events
 composer require chocofamilyme/laravel-pubsub
 ```
 
+# Upgrade v5 -> v6
+Read upgrade guide [here](https://github.com/chocofamilyme/laravel-pubsub/blob/master/docs/UPGRADE.md)
+
 # Upgrade v3 -> v4
 Read upgrade guide [here](https://github.com/chocofamilyme/laravel-pubsub/blob/master/docs/UPGRADE.md)
 

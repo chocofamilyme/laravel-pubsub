@@ -7,6 +7,7 @@ namespace Chocofamilyme\LaravelPubSub\Commands;
 use Chocofamilyme\LaravelPubSub\Events\EventModel;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Queue\QueueManager;
 
 /**
  * Class EventRePublish
@@ -31,15 +32,18 @@ final class EventRePublish extends Command
      */
     protected $description = 'Таск для отправки в Message Broker не опубликованных события';
 
-    private Dispatcher $dispatcher;
+    private QueueManager $queue;
 
-    public function __construct(Dispatcher $dispatcher)
+    public function __construct(QueueManager $queue)
     {
-        $this->dispatcher = $dispatcher;
+        $this->queue = $queue;
 
         parent::__construct();
     }
 
+    /**
+     * @psalm-suppress InvalidArgument
+     */
     public function handle(): int
     {
         $events = EventModel::whereNull('processed_at')->where('type', 'pub')->orderBy('created_at');
@@ -50,7 +54,7 @@ final class EventRePublish extends Command
             ->each(
                 function (EventModel $eventModel) {
                     try {
-                        $this->app->make('queue')->connection(null)->pushRaw(
+                        $this->queue->connection()->pushRaw(
                             $eventModel->payload,
                             $eventModel->routing_key,
                             $eventModel->amqpProperties(),

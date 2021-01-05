@@ -1,3 +1,6 @@
+# Upgrade v5 -> v6
+- Update the event table to see the migration create_pubsub_events_table.php.stub. Added column exchange_type
+
 # Upgrade v3 -> v4
 
 * Publish migration and config files
