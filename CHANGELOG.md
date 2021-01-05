@@ -1,4 +1,6 @@
 # Changelog
+## 5.1.0
+- Added ability to recording all incoming subscribe events to database. To turn on this functionality you need to set ```true``` in ```record_sub_events``` parameter in ```config/pubsub.php``` (by default ```false```).
 
 ## 6.0.0
 - Remove class Amqp
@@ -12,3 +14,4 @@
  
 ## 4.1.0
 - Added a non-blocking worker mode
+ 
