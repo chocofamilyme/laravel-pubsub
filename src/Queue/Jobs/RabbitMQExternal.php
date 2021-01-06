@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Chocofamilyme\LaravelPubSub\Queue\Jobs;
 
 use Carbon\CarbonImmutable;
+use Chocofamilyme\LaravelPubSub\Dictionary;
 use Chocofamilyme\LaravelPubSub\Events\EventModel;
 use Chocofamilyme\LaravelPubSub\Exceptions\NotFoundListenerException;
 use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
@@ -96,7 +97,7 @@ class RabbitMQExternal extends RabbitMQLaravel
      */
     public function getJobId()
     {
-        return $this->decoded['_eventId'] ?? Str::uuid()->toString();
+        return $this->decoded[Dictionary::EVENT_ID_KEY] ?? Str::uuid()->toString();
     }
 
     /**
@@ -106,7 +107,7 @@ class RabbitMQExternal extends RabbitMQLaravel
      */
     public function getName(): string
     {
-        $name = $this->payload()['_event'] ?? $this->message->getRoutingKey();
+        $name = $this->payload()[Dictionary::EVENT_NAME_KEY] ?? $this->message->getRoutingKey();
 
         if (null === $name) {
             throw new \RuntimeException("The name is not defined");

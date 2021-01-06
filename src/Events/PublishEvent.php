@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Chocofamilyme\LaravelPubSub\Events;
 
 use Carbon\CarbonImmutable;
+use Chocofamilyme\LaravelPubSub\Dictionary;
 use Chocofamilyme\LaravelPubSub\Exceptions\InvalidEventDeclarationException;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -43,8 +44,8 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
     public function prepare(): void
     {
         if (
-            empty(static::EXCHANGE_NAME) ||
-            empty(static::ROUTING_KEY)
+            empty(static::EXCHANGE_NAME)
+            || empty(static::ROUTING_KEY)
         ) {
             throw new InvalidEventDeclarationException(
                 "Pubsub events must override constants EXCHANGE_NAME, ROUTING_KEY"
@@ -84,8 +85,8 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
                 'headers'  => $this->getHeaders(),
             ],
             'model'      => [
-                'durable' => $this instanceof DurableEvent
-            ]
+                'durable' => $this instanceof DurableEvent,
+            ],
         ];
     }
 
@@ -98,9 +99,9 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
         return array_merge(
             $this->toPayload(),
             [
-                '_eventId'        => $this->getEventId(),
-                '_eventCreatedAt' => $this->getEventCreatedAt(),
-                '_event'          => $this->getName(),
+                Dictionary::EVENT_ID_KEY        => $this->getEventId(),
+                Dictionary::EVENT_CREATE_AT_KEY => $this->getEventCreatedAt(),
+                Dictionary::EVENT_NAME_KEY      => $this->getName(),
             ]
         );
     }
