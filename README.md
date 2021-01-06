@@ -210,8 +210,8 @@ We've tried to make it easy as possible for you, see how it works:
 1. Create event with ```php artisan make:event```, please aware that the name of your event class will be the event name in the message payload.
 It is then used for internal router ```config/pubsub.php``` 
 2. Open fresh created event and extends from ```Chocofamilyme\LaravelPubSub\Events\PublishEvent```
-3. You will have to override values of constants couple of methods like ```EXCHANGE_NAME```, ```NAME```, ```ROUTING_KEY```. These constants tell the dispatcher
-which exchange should be used for this event and which routing key and name of the event. See? It's pretty self-descriptive.
+3. You will have to override values of constants couple of methods like ```EXCHANGE_NAME```, ```ROUTING_KEY```. These constants tell the dispatcher
+which exchange should be used for this event and which routing key. See? It's pretty self-descriptive.
 4. Since you extended from ```PublishEvent``` class you could override more methods which could make the event more precise, for
 that please see inside this class.
 5. After our event is ready, we now can publish it in laravel way:
@@ -250,4 +250,15 @@ class UserUpdatedEvent extends PublishEvent
         $this->name = $name;
     }
 }
+```
+
+#### Example setting `listen` in config/pubsub.php
+```php
+...
+  'listen' => [
+      'App\Events\UserUpdatedEvent' => [
+          UserChangeListener::class,
+      ],
+  ],
+...
 ```
