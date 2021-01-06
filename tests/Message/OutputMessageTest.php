@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Chocofamily\LaravelPubSub\Tests\Amqp\Message;
+namespace Chocofamily\LaravelPubSub\Tests\Message;
 
 use Chocofamily\LaravelPubSub\Tests\TestCase;
 use Chocofamilyme\LaravelPubSub\Message\OutputMessage;

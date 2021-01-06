@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chocofamilyme\LaravelPubSub\Queue\Jobs;
 
+use JsonException;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Jobs\RabbitMQJob;
+
+use function json_decode;
 
 class RabbitMQLaravel extends RabbitMQJob
 {
-    /** @var array */
-    protected $payload;
-
     /**
      * {@inheritdoc}
      */
@@ -23,16 +25,15 @@ class RabbitMQLaravel extends RabbitMQJob
     }
 
     /**
-     * Get the decoded body of the job.
-     *
      * @return array
+     * @throws JsonException
      */
     public function payload()
     {
-        if (is_null($this->payload)) {
-            $this->payload = json_decode($this->getRawBody(), true);
+        if (is_null($this->decoded)) {
+            $this->decoded = json_decode($this->getRawBody(), true, 512, JSON_THROW_ON_ERROR);
         }
 
-        return $this->payload;
+        return $this->decoded;
     }
 }

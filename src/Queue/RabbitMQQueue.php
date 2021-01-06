@@ -4,18 +4,11 @@ declare(strict_types=1);
 
 namespace Chocofamilyme\LaravelPubSub\Queue;
 
-use Carbon\CarbonImmutable;
-use Chocofamilyme\LaravelPubSub\Events\EventModel;
 use Chocofamilyme\LaravelPubSub\Message\OutputMessage;
-use Chocofamilyme\LaravelPubSub\Events\PublishEvent;
-use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQLaravel;
 use Exception;
-use PhpAmqpLib\Exception\AMQPProtocolChannelException;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue as Queue;
 use Illuminate\Support\Arr;
-use PhpAmqpLib\Channel\AMQPChannel;
-use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Wire\AMQPTable;
 
 class RabbitMQQueue extends Queue

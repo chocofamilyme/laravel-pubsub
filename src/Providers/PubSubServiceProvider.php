@@ -115,7 +115,7 @@ class PubSubServiceProvider extends ServiceProvider
         $this->app->get(BroadcastManager::class)->extend(
             'rabbitmq',
             function (Application $app, array $config) {
-                return new RabbitmqBroadcaster($this->app->get('queue'));
+                return new RabbitmqBroadcaster($app->get('queue'));
             }
         );
     }

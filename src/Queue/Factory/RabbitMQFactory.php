@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chocofamilyme\LaravelPubSub\Queue\Factory;
 
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
@@ -14,10 +16,6 @@ use InvalidArgumentException;
 use PhpAmqpLib\Message\AMQPMessage;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
-/**
- * @package Chocolife.me
- * @author  Moldabayev Vadim <moldabayev.v@chocolife.kz>
- */
 class RabbitMQFactory
 {
     /**

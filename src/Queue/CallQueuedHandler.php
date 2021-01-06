@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chocofamilyme\LaravelPubSub\Queue;
 
 use Exception;
@@ -43,16 +45,7 @@ class CallQueuedHandler
         $this->dispatcher = $dispatcher;
     }
 
-    /**
-     * Handle the queued job.
-     *
-     * @param Job    $job
-     * @param string $listener
-     * @param array  $data
-     *
-     * @return void
-     */
-    public function call(Job $job, string $listener, $data): void
+    public function call(Job $job, string $listener, array $data): void
     {
         try {
             $listener = $this->container->make($listener);

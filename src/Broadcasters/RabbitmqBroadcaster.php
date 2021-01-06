@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Chocofamilyme\LaravelPubSub\Broadcasters;
 
 use Carbon\CarbonImmutable;
+use Chocofamilyme\LaravelPubSub\Dictionary;
 use Chocofamilyme\LaravelPubSub\Events\EventModel;
 use Illuminate\Broadcasting\Broadcasters\Broadcaster;
 use Illuminate\Contracts\Queue\Factory;
+use JsonException;
 
 class RabbitmqBroadcaster extends Broadcaster
 {
@@ -15,17 +17,20 @@ class RabbitmqBroadcaster extends Broadcaster
 
     private Factory $manager;
 
-    /**
-     * RabbitmqBroadcaster constructor.
-     *
-     * @param Queue $queue
-     */
     public function __construct(Factory $manager)
     {
         $this->manager = $manager;
     }
 
-    /** @psalm-suppress InvalidArgument */
+    /**
+     * @psalm-suppress InvalidArgument
+     *
+     * @param array $channels
+     * @param       $event
+     * @param array $payload
+     *
+     * @throws JsonException
+     */
     public function broadcast(array $channels, $event, array $payload = [])
     {
         $queue      = $this->manager->connection(self::DRIVER);
@@ -46,7 +51,7 @@ class RabbitmqBroadcaster extends Broadcaster
 
     protected function persist(array $event, string $routingKey): EventModel
     {
-        if ($model = EventModel::find($event['body']['_eventId'])) {
+        if ($model = EventModel::find($event['body'][Dictionary::EVENT_ID_KEY])) {
             return $model;
         }
 
@@ -54,15 +59,15 @@ class RabbitmqBroadcaster extends Broadcaster
         $model->setOriginalEvent($event);
         $model->setRawAttributes(
             [
-                'id'            => $event['body']['_eventId'],
+                'id'            => $event['body'][Dictionary::EVENT_ID_KEY],
                 'type'          => EventModel::TYPE_PUB,
-                'name'          => $event['body']['_event'],
+                'name'          => $event['body'][Dictionary::EVENT_NAME_KEY],
                 'payload'       => \json_encode($event['body'], JSON_THROW_ON_ERROR),
                 'headers'       => \json_encode($event['headers'], JSON_THROW_ON_ERROR),
                 'exchange'      => $event['properties']['exchange']['name'],
                 'exchange_type' => $event['properties']['exchange']['type'],
                 'routing_key'   => $routingKey,
-                'created_at'    => $event['body']['_eventCreatedAt'],
+                'created_at'    => $event['body'][Dictionary::EVENT_CREATE_AT_KEY],
             ]
         );
 

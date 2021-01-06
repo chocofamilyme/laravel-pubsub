@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Chocofamilyme\LaravelPubSub\Queue\Jobs;
 
 use Carbon\CarbonImmutable;
+use Chocofamilyme\LaravelPubSub\Dictionary;
 use Chocofamilyme\LaravelPubSub\Events\EventModel;
 use Chocofamilyme\LaravelPubSub\Exceptions\NotFoundListenerException;
 use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
@@ -59,19 +60,19 @@ class RabbitMQExternal extends RabbitMQLaravel
 
     /**
      * @throws NotFoundListenerException
+     * @throws \JsonException
      */
     public function fire()
     {
-        $payload   = $this->payload();
-        $listeners = $this->eventRouter->getListeners($this->getName());
-
+        $payload = $this->payload();
         if ($this->isSubscribeRecordEnabled()) {
             $model = new EventModel(
                 [
-                    'id'          => $this->getEventId(),
+                    'id'          => $this->getJobId(),
                     'type'        => EventModel::TYPE_SUB,
                     'name'        => $this->getName(),
                     'payload'     => $payload,
+                    'headers'     => $this->getRabbitMQMessageHeaders(),
                     'exchange'    => $this->message->getExchange(),
                     'routing_key' => $this->message->getRoutingKey(),
                     'created_at'  => CarbonImmutable::now()->toDateTimeString(),
@@ -80,6 +81,7 @@ class RabbitMQExternal extends RabbitMQLaravel
             $model->save();
         }
 
+        $listeners = $this->eventRouter->getListeners($this->getName());
         foreach ($listeners as $listener) {
             $this->instance->call($this, $listener, $payload);
         }
@@ -87,7 +89,15 @@ class RabbitMQExternal extends RabbitMQLaravel
 
     public function isSubscribeRecordEnabled(): bool
     {
-        return config('pubsub.record_sub_events', false);
+        return $this->getContainer()->get('config')->get('pubsub.record_sub_events', false) && $this->getJobId();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getJobId()
+    {
+        return $this->decoded[Dictionary::EVENT_ID_KEY] ?? Str::uuid()->toString();
     }
 
     /**
@@ -97,7 +107,7 @@ class RabbitMQExternal extends RabbitMQLaravel
      */
     public function getName(): string
     {
-        $name = $this->payload()['_event'] ?? $this->message->getRoutingKey();
+        $name = $this->payload()[Dictionary::EVENT_NAME_KEY] ?? $this->message->getRoutingKey();
 
         if (null === $name) {
             throw new \RuntimeException("The name is not defined");
@@ -106,15 +116,10 @@ class RabbitMQExternal extends RabbitMQLaravel
         return $name;
     }
 
-    public function getEventId(): string
-    {
-        return $this->payload()['id'] ?? Str::uuid()->toString();
-    }
-
     public function failed($e)
     {
         if ($this->isSubscribeRecordEnabled()) {
-            EventModel::where('id', $this->getEventId())->update(
+            EventModel::where('id', $this->getJobId())->update(
                 [
                     'exception' => (string)$e,
                     'failed_at' => CarbonImmutable::now()->toDateTimeString(),

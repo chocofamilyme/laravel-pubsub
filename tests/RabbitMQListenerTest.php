@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Chocofamily\LaravelPubSub\Tests;
 
 use Chocofamily\LaravelPubSub\Tests\TestClasses\TestListener;
+use Chocofamilyme\LaravelPubSub\Dictionary;
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
 use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQExternal;
 use Illuminate\Contracts\Bus\Dispatcher;
+use Illuminate\Support\Str;
 use PhpAmqpLib\Message\AMQPMessage;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
@@ -38,9 +40,14 @@ class RabbitMQListenerTest extends TestCase
 
     public function testItFire(): void
     {
-        $body    = json_encode('test', JSON_THROW_ON_ERROR);
-        $message = new AMQPMessage($body);
+        $body = \json_encode(
+            [
+                'body' => 'value',
+            ],
+            JSON_THROW_ON_ERROR
+        );
 
+        $message = new AMQPMessage($body);
         $message->setDeliveryInfo('', '', '', 'test.route');
 
         $rabbitMQListener = new RabbitMQExternal(
@@ -84,10 +91,18 @@ class RabbitMQListenerTest extends TestCase
         $this->assertEquals('test.route', $rabbitMQListener->getName());
     }
 
-    public function testGetName(): void
+    public function testGetNameAndId(): void
     {
         $eventName = 'eventName';
-        $body      = json_encode(['name' => 'test', '_event' => $eventName], JSON_THROW_ON_ERROR);
+        $id        = Str::uuid()->toString();
+        $body      = json_encode(
+            [
+                'name'                     => 'test',
+                Dictionary::EVENT_NAME_KEY => $eventName,
+                Dictionary::EVENT_ID_KEY   => $id,
+            ],
+            JSON_THROW_ON_ERROR
+        );
         $message   = new AMQPMessage($body);
 
         $message->setDeliveryInfo('', '', '', 'test.route');
@@ -106,5 +121,6 @@ class RabbitMQListenerTest extends TestCase
         );
 
         $this->assertEquals($eventName, $rabbitMQListener->getName());
+        $this->assertEquals($id, $rabbitMQListener->getJobId());
     }
 }
