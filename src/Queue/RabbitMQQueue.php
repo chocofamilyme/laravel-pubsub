@@ -21,87 +21,6 @@ use PhpAmqpLib\Wire\AMQPTable;
 class RabbitMQQueue extends Queue
 {
     /**
-     * The RabbitMQ connection instance.
-     *
-     * @var AbstractConnection
-     */
-    protected $connection;
-
-    /**
-     * The RabbitMQ channel instance.
-     *
-     * @var AMQPChannel
-     */
-    protected $channel;
-
-    /**
-     * List of already declared exchanges.
-     *
-     * @var array
-     */
-    protected $exchanges = [];
-
-    /**
-     * List of already declared queues.
-     *
-     * @var array
-     */
-    protected $queues = [];
-
-    /**
-     * List of already bound queues to exchanges.
-     *
-     * @var array
-     */
-    protected $boundQueues = [];
-
-    /**
-     * Current job being processed.
-     *
-     * @var RabbitMQLaravel
-     */
-    protected $currentJob;
-
-    /**
-     * {@inheritdoc}
-     * @psalm-suppress PossiblyInvalidArgument
-     * @psalm-suppress PossiblyNullArgument
-     * @throws AMQPProtocolChannelException
-     */
-    public function push($job, $data = '', $queue = null)
-    {
-        return $this->pushRaw($this->createPayload($job, $queue, $data), $queue, []);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @psalm-suppress InvalidPropertyFetch
-     * @psalm-suppress InvalidArgument
-     *
-     * @throws AMQPProtocolChannelException
-     */
-    public function pushOn($queue, $job, $data = '')
-    {
-        $event = $job->event ? $job->event : $job;
-
-        $eventModel = $this->persist($event);
-
-        $correlationId = $this->pushRaw(
-            $eventModel->payload,
-            $queue,
-            $eventModel->amqpProperties()
-        );
-
-        if ($eventModel->isDurable()) {
-            $eventModel->processed_at = CarbonImmutable::now();
-            $eventModel->update();
-        }
-
-        return $correlationId;
-    }
-
-    /**
      * {@inheritdoc}
      * @throws Exception
      */
@@ -140,8 +59,8 @@ class RabbitMQQueue extends Queue
 
     /**
      * @param array|string $payload
-     * @param array        $headers
-     * @param int          $attempts
+     * @param array $headers
+     * @param int $attempts
      *
      * @return array
      * @throws Exception
@@ -166,7 +85,7 @@ class RabbitMQQueue extends Queue
         bool $autoDelete = false,
         array $arguments = []
     ): void {
-        if (in_array($name, $this->queues, true)) {
+        if ($this->isQueueDeclared($name)) {
             return;
         }
 
@@ -179,48 +98,5 @@ class RabbitMQQueue extends Queue
             false,
             new AMQPTable($arguments)
         );
-    }
-
-    /**
-     * @param object $job
-     * @param string $queue
-     *
-     * @return array
-     */
-    protected function createObjectPayload($job, $queue)
-    {
-        if ($job instanceof EventModel) {
-            return $job->payload;
-        }
-
-        return parent::createObjectPayload($job, $queue);
-    }
-
-    protected function persist(PublishEvent $event): EventModel
-    {
-        $event->prepare();
-
-        $model = new EventModel();
-
-        $model->setOriginalEvent($event);
-        $model->setRawAttributes(
-            [
-                'id'            => $event->getEventId(),
-                'type'          => EventModel::TYPE_PUB,
-                'name'          => $event->getName(),
-                'payload'       => \json_encode($event->getPayload(), JSON_THROW_ON_ERROR),
-                'headers'       => \json_encode($event->getHeaders(), JSON_THROW_ON_ERROR),
-                'exchange'      => $event->getExchange(),
-                'exchange_type' => $event->getExchangeType(),
-                'routing_key'   => $event->getRoutingKey(),
-                'created_at'    => $event->getEventCreatedAt(),
-            ]
-        );
-
-        if ($model->isDurable()) {
-            $model->saveOrFail();
-        }
-
-        return $model;
     }
 }

@@ -1,0 +1,101 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Chocofamilyme\LaravelPubSub\Broadcasters;
+
+use Carbon\CarbonImmutable;
+use Chocofamilyme\LaravelPubSub\Events\EventModel;
+use Illuminate\Broadcasting\Broadcasters\Broadcaster;
+use Illuminate\Contracts\Queue\Factory;
+
+class RabbitmqBroadcaster extends Broadcaster
+{
+    private const DRIVER = 'rabbitmq';
+
+    private Factory $manager;
+
+    /**
+     * RabbitmqBroadcaster constructor.
+     *
+     * @param Queue $queue
+     */
+    public function __construct(Factory $manager)
+    {
+        $this->manager = $manager;
+    }
+
+    /** @psalm-suppress InvalidArgument */
+    public function broadcast(array $channels, $event, array $payload = [])
+    {
+        $queue      = $this->manager->connection(self::DRIVER);
+        $routingKey = $this->getRoutingKey($channels);
+        $eventModel = $this->persist($payload, $routingKey);
+
+        $queue->pushRaw(
+            $eventModel->payload,
+            $routingKey,
+            $eventModel->amqpProperties()
+        );
+
+        if ($eventModel->isDurable()) {
+            $eventModel->processed_at = CarbonImmutable::now();
+            $eventModel->update();
+        }
+    }
+
+    protected function persist(array $event, string $routingKey): EventModel
+    {
+        if ($model = EventModel::find($event['body']['_eventId'])) {
+            return $model;
+        }
+
+        $model = new EventModel();
+        $model->setOriginalEvent($event);
+        $model->setRawAttributes(
+            [
+                'id'            => $event['body']['_eventId'],
+                'type'          => EventModel::TYPE_PUB,
+                'name'          => $event['body']['_event'],
+                'payload'       => \json_encode($event['body'], JSON_THROW_ON_ERROR),
+                'headers'       => \json_encode($event['headers'], JSON_THROW_ON_ERROR),
+                'exchange'      => $event['properties']['exchange']['name'],
+                'exchange_type' => $event['properties']['exchange']['type'],
+                'routing_key'   => $routingKey,
+                'created_at'    => $event['body']['_eventCreatedAt'],
+            ]
+        );
+
+        if ($model->isDurable()) {
+            $model->saveOrFail();
+        }
+
+        return $model;
+    }
+
+    /**
+     * @param array $channels
+     *
+     * @return string
+     */
+    protected function getRoutingKey(array $channels): string
+    {
+        if (count($channels) === 0) {
+            throw new \RuntimeException('Channels is empty');
+        }
+
+        return (string)array_shift($channels);
+    }
+
+    /** @psalm-suppress InvalidReturnType */
+    public function auth($request)
+    {
+        //
+    }
+
+    /** @psalm-suppress InvalidReturnType */
+    public function validAuthenticationResponse($request, $result)
+    {
+        //
+    }
+}

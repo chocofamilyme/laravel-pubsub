@@ -41,14 +41,14 @@ class EventModel extends Model
         'headers' => 'array',
     ];
 
-    protected ?PublishEvent $originalEvent = null;
+    protected array $originalEvent = [];
 
     public function getTable()
     {
         return config('pubsub.tables.events', parent::getTable());
     }
 
-    public function setOriginalEvent(PublishEvent $event): self
+    public function setOriginalEvent(array $event): self
     {
         $this->originalEvent = $event;
 
@@ -57,11 +57,11 @@ class EventModel extends Model
 
     public function isDurable(): bool
     {
-        if (null === $this->originalEvent) {
+        if (empty($this->originalEvent)) {
             return false;
         }
 
-        return $this->originalEvent instanceof DurableEvent;
+        return $this->originalEvent['model']['durable'] ?? false;
     }
 
     public function amqpProperties(): array
