@@ -6,9 +6,6 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Jobs\RabbitMQJob;
 
 class RabbitMQLaravel extends RabbitMQJob
 {
-    /** @var array */
-    protected $payload;
-
     /**
      * {@inheritdoc}
      */
@@ -23,16 +20,15 @@ class RabbitMQLaravel extends RabbitMQJob
     }
 
     /**
-     * Get the decoded body of the job.
-     *
-     * @return array
+     * @return array|mixed
+     * @throws \JsonException
      */
     public function payload()
     {
-        if (is_null($this->payload)) {
-            $this->payload = json_decode($this->getRawBody(), true);
+        if (is_null($this->decoded)) {
+            $this->decoded = \json_decode($this->getRawBody(), true, 512, JSON_THROW_ON_ERROR);
         }
 
-        return $this->payload;
+        return $this->decoded;
     }
 }

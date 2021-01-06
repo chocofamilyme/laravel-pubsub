@@ -15,11 +15,6 @@ class RabbitmqBroadcaster extends Broadcaster
 
     private Factory $manager;
 
-    /**
-     * RabbitmqBroadcaster constructor.
-     *
-     * @param Queue $queue
-     */
     public function __construct(Factory $manager)
     {
         $this->manager = $manager;
