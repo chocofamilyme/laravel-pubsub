@@ -9,6 +9,7 @@ use Chocofamilyme\LaravelPubSub\Dictionary;
 use Chocofamilyme\LaravelPubSub\Events\EventModel;
 use Illuminate\Broadcasting\Broadcasters\Broadcaster;
 use Illuminate\Contracts\Queue\Factory;
+use JsonException;
 
 class RabbitmqBroadcaster extends Broadcaster
 {
@@ -21,7 +22,15 @@ class RabbitmqBroadcaster extends Broadcaster
         $this->manager = $manager;
     }
 
-    /** @psalm-suppress InvalidArgument */
+    /**
+     * @psalm-suppress InvalidArgument
+     *
+     * @param array $channels
+     * @param       $event
+     * @param array $payload
+     *
+     * @throws JsonException
+     */
     public function broadcast(array $channels, $event, array $payload = [])
     {
         $queue      = $this->manager->connection(self::DRIVER);

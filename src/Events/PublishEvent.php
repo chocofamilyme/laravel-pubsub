@@ -26,34 +26,11 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
     private string $eventId;
     private string $eventCreatedAt;
 
-    public $afterCommit = true;
-
     public function broadcastOn()
     {
-        $this->prepare();
-
         return [
             new Channel($this->getRoutingKey()),
         ];
-    }
-
-    /**
-     * @psalm-suppress RedundantPropertyInitializationCheck
-     * @throws InvalidEventDeclarationException
-     */
-    public function prepare(): void
-    {
-        if (
-            empty(static::EXCHANGE_NAME)
-            || empty(static::ROUTING_KEY)
-        ) {
-            throw new InvalidEventDeclarationException(
-                "Pubsub events must override constants EXCHANGE_NAME, ROUTING_KEY"
-            );
-        }
-
-        $this->eventId        ??= Str::uuid()->toString();
-        $this->eventCreatedAt ??= CarbonImmutable::now()->toDateTimeString();
     }
 
     /**
@@ -111,34 +88,37 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
         return get_object_vars($this);
     }
 
-    /**
-     * Exchange in queue borker
-     *
-     * @return string
-     */
     public function getExchange(): string
     {
+        if (null === static::EXCHANGE_NAME) {
+            throw new InvalidEventDeclarationException(
+                "Pubsub events must override constants EXCHANGE_NAME"
+            );
+        }
+
         return static::EXCHANGE_NAME;
     }
 
-    /**
-     * Event route
-     *
-     * @return string
-     */
     public function getRoutingKey(): string
     {
+        if (null === static::EXCHANGE_NAME) {
+            throw new InvalidEventDeclarationException(
+                "Pubsub events must override constants ROUTING_KEY"
+            );
+        }
+
         return static::ROUTING_KEY;
     }
 
     /**
      * Event id
      *
+     * @psalm-suppress RedundantPropertyInitializationCheck
      * @return string
      */
     public function getEventId(): string
     {
-        return $this->eventId;
+        return $this->eventId ??= Str::uuid()->toString();
     }
 
     /**
@@ -162,12 +142,11 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
     }
 
     /**
-     * Creation date (UTC)
-     *
+     * @psalm-suppress RedundantPropertyInitializationCheck
      * @return string
      */
     public function getEventCreatedAt(): string
     {
-        return $this->eventCreatedAt;
+        return $this->eventCreatedAt ??= CarbonImmutable::now()->toDateTimeString();
     }
 }

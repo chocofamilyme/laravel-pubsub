@@ -4,45 +4,38 @@ declare(strict_types=1);
 
 namespace Chocofamilyme\LaravelPubSub\Message;
 
+use JsonException;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
 use Ramsey\Uuid\Uuid;
 
+use function json_encode;
+
 class OutputMessage implements MessageInterface
 {
-    /** @var AMQPMessage */
-    private $message;
-
-    /** @var array */
-    private $body;
-
-    /** @var array */
-    private $headers = [
+    private AMQPMessage $message;
+    private array $body;
+    private array $headers = [
         'content_type'  => 'application/json',
         'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
     ];
 
     /**
-     * OutputMessage constructor.
-     *
      * @param array $body
      * @param array $headers
-     * @param int $attempts
+     * @param int   $attempts
      *
-     * @throws \Exception
+     * @throws JsonException
      */
     public function __construct(array $body, array $headers = [], int $attempts = 0)
     {
         $this->body = $body;
-        $this->initHeaders($body, $headers);
+        $this->initHeaders($headers);
 
         $this->message = new AMQPMessage(\json_encode($this->getBody(), JSON_THROW_ON_ERROR), $this->headers);
         $this->message->set('application_headers', $this->createTable($headers, $attempts));
     }
 
-    /**
-     * @return array
-     */
     public function getBody(): array
     {
         return $this->body;
@@ -53,13 +46,7 @@ class OutputMessage implements MessageInterface
         return $this->headers[$key] ?? $default;
     }
 
-    /**
-     * @param array $body
-     * @param array $headers
-     *
-     * @throws \Exception
-     */
-    private function initHeaders(array $body, array $headers = [])
+    private function initHeaders(array $headers = []): void
     {
         $this->headers = array_merge(
             $this->headers,
@@ -70,12 +57,6 @@ class OutputMessage implements MessageInterface
         $this->headers['correlation_id'] ??= Uuid::uuid4()->toString();
     }
 
-    /**
-     * @param array $headers
-     * @param int $attempts
-     *
-     * @return AMQPTable
-     */
     private function createTable(array $headers, int $attempts): AMQPTable
     {
         $table = $headers['application_headers'] ?? [];
@@ -88,15 +69,12 @@ class OutputMessage implements MessageInterface
         return new AMQPTable($table);
     }
 
-    /**
-     * @return AMQPMessage
-     */
     public function getMessage(): AMQPMessage
     {
         return $this->message;
     }
 
-    public function getHeaders()
+    public function getHeaders(): array
     {
         return $this->headers;
     }

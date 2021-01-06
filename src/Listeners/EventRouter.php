@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chocofamilyme\LaravelPubSub\Listeners;
 
 use Chocofamilyme\LaravelPubSub\Exceptions\NotFoundListenerException;

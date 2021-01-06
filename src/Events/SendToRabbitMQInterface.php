@@ -2,8 +2,6 @@
 
 namespace Chocofamilyme\LaravelPubSub\Events;
 
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-
 interface SendToRabbitMQInterface
 {
     /**
