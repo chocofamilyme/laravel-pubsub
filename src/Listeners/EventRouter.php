@@ -36,13 +36,21 @@ class EventRouter
      */
     public function getListeners(string $eventName): array
     {
-        if (!$this->checkIfEventHasListeners($eventName)) {
-            throw new NotFoundListenerException(
-                "$eventName has no listeners. Please check App\Listeners\EventRouter \$listen property"
-            );
-        }
+        $this->checkIfEventHasListeners($eventName);
 
-        return $this->listen[$eventName];
+        return $this->listen[$eventName]['listeners'];
+    }
+
+    /**
+     * @param string $eventName
+     * @return bool
+     * @throws NotFoundListenerException
+     */
+    public function isEventDurable(string $eventName): bool
+    {
+        $this->checkIfEventHasListeners($eventName);
+
+        return $this->listen[$eventName]['durable'] ?? false;
     }
 
     /**
@@ -50,14 +58,21 @@ class EventRouter
      *
      * @param string $eventName
      *
-     * @return bool
+     * @return void
+     * @throws NotFoundListenerException
      */
-    private function checkIfEventHasListeners(string $eventName): bool
+    private function checkIfEventHasListeners(string $eventName): void
     {
         if (!array_key_exists($eventName, $this->listen)) {
-            return false;
+            throw new NotFoundListenerException(
+                "$eventName has no listeners. Please check App\Listeners\EventRouter \$listen property"
+            );
         }
 
-        return true;
+        if (!array_key_exists('listeners', $this->listen[$eventName])) {
+            throw new NotFoundListenerException(
+                "$eventName has no listeners. Please check App\Listeners\EventRouter \$listen property"
+            );
+        }
     }
 }

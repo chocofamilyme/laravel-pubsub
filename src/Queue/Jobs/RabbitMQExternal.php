@@ -65,7 +65,7 @@ class RabbitMQExternal extends RabbitMQLaravel
     public function fire()
     {
         $payload = $this->payload();
-        if ($this->isSubscribeRecordEnabled()) {
+        if ($this->eventRouter->isEventDurable($this->getName())) {
             $model = new EventModel(
                 [
                     'id'          => $this->getJobId(),
@@ -85,11 +85,6 @@ class RabbitMQExternal extends RabbitMQLaravel
         foreach ($listeners as $listener) {
             $this->instance->call($this, $listener, $payload);
         }
-    }
-
-    public function isSubscribeRecordEnabled(): bool
-    {
-        return $this->getContainer()->get('config')->get('pubsub.record_sub_events', false) && $this->getJobId();
     }
 
     /**
@@ -118,7 +113,7 @@ class RabbitMQExternal extends RabbitMQLaravel
 
     public function failed($e)
     {
-        if ($this->isSubscribeRecordEnabled()) {
+        if ($this->eventRouter->isEventDurable($this->getName())) {
             EventModel::where('id', $this->getJobId())->update(
                 [
                     'exception' => (string)$e,
