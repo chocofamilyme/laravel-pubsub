@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Chocofamilyme\LaravelPubSub\Providers;
 
+use Chocofamilyme\LaravelPubSub\Broadcasters\RabbitmqBroadcaster;
 use Chocofamilyme\LaravelPubSub\Commands\EventRePublish;
 use Chocofamilyme\LaravelPubSub\Commands\EventListenCommand;
 use Chocofamilyme\LaravelPubSub\Listener;
+use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 
@@ -33,6 +36,10 @@ class PubSubServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__ . '/../config/pubsub.php',
             'pubsub'
+        );
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/broadcasting.php',
+            'broadcasting'
         );
 
         if ($this->app->runningInConsole()) {
@@ -104,6 +111,13 @@ class PubSubServiceProvider extends ServiceProvider
             ],
             'migrations'
         );
+
+        $this->app->get(BroadcastManager::class)->extend(
+            'rabbitmq',
+            function (Application $app, array $config) {
+                return new RabbitmqBroadcaster($this->app->get('queue'));
+            }
+        );
     }
 
     /**
@@ -117,9 +131,11 @@ class PubSubServiceProvider extends ServiceProvider
         $timestamp = date('Y_m_d_His');
 
         return Collection::make($this->app->databasePath() . DIRECTORY_SEPARATOR . 'migrations' . DIRECTORY_SEPARATOR)
-            ->flatMap(function ($path) use ($fileNameSuffix) {
-                return glob($path . '*' . $fileNameSuffix);
-            })->push($this->app->databasePath() . "/migrations/{$timestamp}{$fileNameSuffix}")
+            ->flatMap(
+                function ($path) use ($fileNameSuffix) {
+                    return glob($path . '*' . $fileNameSuffix);
+                }
+            )->push($this->app->databasePath() . "/migrations/{$timestamp}{$fileNameSuffix}")
             ->first();
     }
 }

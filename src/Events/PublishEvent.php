@@ -6,6 +6,7 @@ namespace Chocofamilyme\LaravelPubSub\Events;
 
 use Carbon\CarbonImmutable;
 use Chocofamilyme\LaravelPubSub\Exceptions\InvalidEventDeclarationException;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Support\Str;
 
@@ -28,7 +29,11 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
 
     public function broadcastOn()
     {
-        return [];
+        $this->prepare();
+
+        return [
+            new Channel($this->getRoutingKey()),
+        ];
     }
 
     /**
@@ -68,14 +73,27 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
      */
     public function broadcastWith(): array
     {
-        return $this->getPayload();
+        return [
+            'body'       => $this->getBody(),
+            'headers'    => $this->getHeaders(),
+            'properties' => [
+                'exchange' => [
+                    'name' => $this->getExchange(),
+                    'type' => $this->getExchangeType(),
+                ],
+                'headers'  => $this->getHeaders(),
+            ],
+            'model'      => [
+                'durable' => $this instanceof DurableEvent
+            ]
+        ];
     }
 
     /**
      * @return array
      * @throws InvalidEventDeclarationException
      */
-    public function getPayload(): array
+    private function getBody(): array
     {
         return array_merge(
             $this->toPayload(),
@@ -110,13 +128,6 @@ abstract class PublishEvent implements SendToRabbitMQInterface, ShouldBroadcast
     public function getRoutingKey(): string
     {
         return static::ROUTING_KEY;
-    }
-
-    public function broadcastQueue(): string
-    {
-        $this->prepare();
-
-        return $this->getRoutingKey();
     }
 
     /**

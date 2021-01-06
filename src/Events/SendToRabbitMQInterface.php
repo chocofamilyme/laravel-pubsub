@@ -36,7 +36,5 @@ interface SendToRabbitMQInterface
 
     public function getEventId(): string;
 
-    public function getPayload(): array;
-
     public function getEventCreatedAt(): string;
 }
