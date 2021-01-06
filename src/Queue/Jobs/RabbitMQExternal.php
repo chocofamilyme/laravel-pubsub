@@ -10,6 +10,7 @@ use Chocofamilyme\LaravelPubSub\Exceptions\NotFoundListenerException;
 use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
 use Illuminate\Container\Container;
+use Illuminate\Support\Str;
 use PhpAmqpLib\Message\AMQPMessage;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
 
@@ -95,7 +96,7 @@ class RabbitMQExternal extends RabbitMQLaravel
      */
     public function getJobId()
     {
-        return $this->decoded['_eventId'] ?? null;
+        return $this->decoded['_eventId'] ?? Str::uuid()->toString();
     }
 
     /**

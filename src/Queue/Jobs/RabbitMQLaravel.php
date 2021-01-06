@@ -20,7 +20,7 @@ class RabbitMQLaravel extends RabbitMQJob
     }
 
     /**
-     * @return array|mixed
+     * @return array
      * @throws \JsonException
      */
     public function payload()
