@@ -11,12 +11,14 @@ listen => [
 ```
 Now: 
 ```
-'UserNotified' => [
-             'durable' => true,
-             'listeners' => [
-                 NotifyAboutDeviceChangeListener::class,
-             ],
-         ]
+listen => [
+        'UserNotified' => [
+                     'durable' => true,
+                     'listeners' => [
+                         NotifyAboutDeviceChangeListener::class,
+                     ],
+                 ]
+    ],
 ```
 
     
