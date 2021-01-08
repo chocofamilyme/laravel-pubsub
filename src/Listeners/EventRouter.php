@@ -44,12 +44,9 @@ class EventRouter
     /**
      * @param string $eventName
      * @return bool
-     * @throws NotFoundListenerException
      */
     public function isEventDurable(string $eventName): bool
     {
-        $this->checkIfEventHasListeners($eventName);
-
         return $this->listen[$eventName]['durable'] ?? false;
     }
 
