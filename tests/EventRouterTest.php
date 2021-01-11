@@ -19,7 +19,10 @@ class EventRouterTest extends TestCase
 
         $this->app['config']->set('pubsub.listen', [
                 'test.route' => [
-                    TestListener::class,
+                    'durable' => false,
+                    'listeners' => [
+                        TestListener::class,
+                    ],
                 ],
             ]);
     }

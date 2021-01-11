@@ -12,12 +12,16 @@ return [
     |
     | listen => [
     |     'UserNotified' => [
-    |         NotifyAboutDeviceChangeListener::class,
+    |         'durable' => true,
+    |         'listeners' => [
+    |             NotifyAboutDeviceChangeListener::class,
+    |         ],
     |     ]
     | ],
     |
     */
     'listen' => [],
+
 
     /**
      * Define database tables for storing data (publishing events, incoming events, etc.)
@@ -25,9 +29,4 @@ return [
     'tables' => [
         'events' => 'pubsub_events',
     ],
-
-    /**
-     * If true, all incoming subscribe events will be recorded to tables->events table
-     */
-    'record_sub_events' => false
 ];

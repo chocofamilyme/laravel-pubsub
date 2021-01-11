@@ -6,6 +6,9 @@ Laravel pub/sub library allows you to publish, consume and process rabbit events
 composer require chocofamilyme/laravel-pubsub
 ```
 
+# Upgrade v6 -> v7
+Read upgrade guide [here](https://github.com/chocofamilyme/laravel-pubsub/blob/master/docs/UPGRADE.md)
+
 # Upgrade v5 -> v6
 Read upgrade guide [here](https://github.com/chocofamilyme/laravel-pubsub/blob/master/docs/UPGRADE.md)
 
@@ -118,7 +121,10 @@ return [
     |
     | listen => [
     |     'UserNotified' => [
-    |         NotifyAboutDeviceChangeListener::class,
+    |         'durable' => true,
+    |         'listeners' => [
+    |             NotifyAboutDeviceChangeListener::class,
+    |         ],
     |     ]
     | ],
     |
@@ -133,11 +139,6 @@ return [
     'tables' => [
         'events' => 'pubsub_events'
     ]
-    
-    /**
-     * If true, all incoming subscribe events will be recorded to tables->events table
-     */
-    'record_sub_events' => false
 ];  
 ```  
   
@@ -257,7 +258,10 @@ class UserUpdatedEvent extends PublishEvent
 ...
   'listen' => [
       'App\Events\UserUpdatedEvent' => [
-          UserChangeListener::class,
+          'durable' => true,
+          'listeners' => [
+               UserChangeListener::class,
+          ],
       ],
   ],
 ...

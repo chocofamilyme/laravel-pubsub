@@ -27,7 +27,10 @@ class RabbitMQListenerTest extends TestCase
             'pubsub.listen',
             [
                 'test.route' => [
-                    TestListener::class,
+                    'durable' => false,
+                    'listeners' => [
+                        TestListener::class,
+                    ]
                 ],
             ]
         );

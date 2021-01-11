@@ -1,3 +1,30 @@
+# Upgrade v6 -> v7
+- change format of `config/pubsub.php` `listen` field. Add `durable` option, for recording incoming events in database (by default `false`).
+
+Before:
+```
+listen => [
+         'UserNotified' => [
+             NotifyAboutDeviceChangeListener::class,
+         ]
+     ],
+```
+Now: 
+```
+listen => [
+        'UserNotified' => [
+                     'durable' => true,
+                     'listeners' => [
+                         NotifyAboutDeviceChangeListener::class,
+                     ],
+                 ]
+    ],
+```
+
+    
+
+- deprecated `config/pubsub.php` `record_sub_events` field, instead use `durable` option in `listen` field for corresponding event. (see above)
+
 # Upgrade v5 -> v6
 - Update the event table to see the migration create_pubsub_events_table.php.stub. Added column exchange_type
 - Set environment BROADCAST_DRIVER = rabbitmq
