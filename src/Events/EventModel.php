@@ -6,6 +6,7 @@ namespace Chocofamilyme\LaravelPubSub\Events;
 
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property Carbon|CarbonImmutable|string|null $processed_at
  * @property Carbon|CarbonImmutable|string|null $failed_at
  * @property string|null $exception
+ * @mixin Builder
  */
 class EventModel extends Model
 {

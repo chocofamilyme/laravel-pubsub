@@ -65,10 +65,15 @@ class RabbitMQExternal extends RabbitMQLaravel
     public function fire()
     {
         $payload = $this->payload();
+
+        $jobId = $this->getJobId();
+
         if ($this->eventRouter->isEventDurable($this->getName())) {
-            $model = new EventModel(
+            EventModel::firstOrCreate(
                 [
-                    'id'          => $this->getJobId(),
+                    'id' => $jobId
+                ],
+                [
                     'type'        => EventModel::TYPE_SUB,
                     'name'        => $this->getName(),
                     'payload'     => $payload,
@@ -78,7 +83,6 @@ class RabbitMQExternal extends RabbitMQLaravel
                     'created_at'  => CarbonImmutable::now()->toDateTimeString(),
                 ]
             );
-            $model->save();
         }
 
         $listeners = $this->eventRouter->getListeners($this->getName());
@@ -88,7 +92,7 @@ class RabbitMQExternal extends RabbitMQLaravel
     }
 
     /**
-     * {@inheritdoc}
+     * @return string
      */
     public function getJobId()
     {
