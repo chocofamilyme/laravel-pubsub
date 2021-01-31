@@ -65,29 +65,34 @@ php artisan vendor:publish --provider="Chocofamilyme\LaravelPubSub\Providers\Pub
         ],
      ],  
   
-  'options' => [  
-      'ssl_options' => [  
-      'cafile' => env('RABBITMQ_SSL_CAFILE', null),  
-      'local_cert' => env('RABBITMQ_SSL_LOCALCERT', null),  
-      'local_key' => env('RABBITMQ_SSL_LOCALKEY', null),  
-      'verify_peer' => env('RABBITMQ_SSL_VERIFY_PEER', true),  
-      'passphrase' => env('RABBITMQ_SSL_PASSPHRASE', null),  
-  ],
+    'options' => [  
+        'ssl_options' => [  
+            'cafile' => env('RABBITMQ_SSL_CAFILE', null),  
+            'local_cert' => env('RABBITMQ_SSL_LOCALCERT', null),  
+            'local_key' => env('RABBITMQ_SSL_LOCALKEY', null),  
+            'verify_peer' => env('RABBITMQ_SSL_VERIFY_PEER', true),  
+            'passphrase' => env('RABBITMQ_SSL_PASSPHRASE', null),  
+        ],
     
-  'heartbeat' => 60,  
-  'message-ttl' => 60000000,  
+        'heartbeat' => 60,  
+        'message-ttl' => 60000000,  
   
-  'publisher' => [  
-      'queue' => [  
-          'declare' => false,  
-          'bind' => false,
-       ],  
-      'exchange' => [  
-          'declare' => false,
-          'name' => 'exchange-name',  
-      ],  
-  ],
-]
+        'publisher' => [  
+            'queue' => [  
+                'declare' => false,  
+                'bind' => false,
+            ],  
+            'exchange' => [  
+                'declare' => false,
+                'name' => 'exchange-name',  
+            ],  
+        ],
+
+        'queue' => [
+            'app_id' => env('APP_DOMAIN', $_SERVER['SERVER_NAME'] ?? 'cli'),
+         ],
+    ]
+];
 ```
 
 
