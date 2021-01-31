@@ -48,7 +48,7 @@ return [
                 'heartbeat'   => 60,
 
                 'queue' => [
-                	'app_id' => env('APP_DOMAIN', $_SERVER['SERVER_NAME'] ?? 'cli'),
+	                'app_id' => env('APP_DOMAIN', $_SERVER['SERVER_NAME'] ?? 'cli'),
                     'declare' => false,
                     'bind'    => false,
                 ],
