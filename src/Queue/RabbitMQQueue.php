@@ -64,7 +64,7 @@ class RabbitMQQueue extends Queue
             $payload = \json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
         }
 
-        $defaultHeaders = ['app_id' => $this->options['app_id']];
+        $defaultHeaders = ['app_id' => config('app.name')];
         $headers = array_merge($headers, $defaultHeaders);
 
         $outputMessage = new OutputMessage($payload, $headers, $attempts);

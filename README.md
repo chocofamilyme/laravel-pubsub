@@ -87,12 +87,8 @@ php artisan vendor:publish --provider="Chocofamilyme\LaravelPubSub\Providers\Pub
                 'name' => 'exchange-name',  
             ],  
         ],
-
-        'queue' => [
-            'app_id' => env('APP_DOMAIN', $_SERVER['SERVER_NAME'] ?? 'cli'),
-         ],
-    ]
-];
+    ],
+]
 ```
 
 
