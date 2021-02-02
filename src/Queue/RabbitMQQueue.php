@@ -52,8 +52,8 @@ class RabbitMQQueue extends Queue
 
     /**
      * @param array|string $payload
-     * @param array $headers
-     * @param int $attempts
+     * @param array        $headers
+     * @param int          $attempts
      *
      * @return array
      * @throws Exception
@@ -64,8 +64,8 @@ class RabbitMQQueue extends Queue
             $payload = \json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
         }
 
-        $defaultHeaders = ['app_id' => config('app.name')];
-        $headers = array_merge($headers, $defaultHeaders);
+        $defaultHeaders = ['app_id' => $this->container->get('config')->get('app.name')];
+        $headers        = array_merge($headers, $defaultHeaders);
 
         $outputMessage = new OutputMessage($payload, $headers, $attempts);
 
