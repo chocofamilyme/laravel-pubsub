@@ -7,6 +7,7 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Console\ConsumeCommand;
 
 class EventListenCommand extends ConsumeCommand
 {
+    /** @var string */
     protected $signature = 'event:listen
                             {event? : Event name, e.g. user.# -> listen to all events starting with user.}
                             {connection=rabbitmq : The name of the queue connection to work}
@@ -32,6 +33,7 @@ class EventListenCommand extends ConsumeCommand
                             {--exchange_passive=0 : If set, the server will reply with Declare-Ok if the exchange already exists with the same name, and raise an error if not}
                             {--exchange_durable=1 : If set when creating a new exchange, the exchange will be marked as durable}
                             {--exchange_auto_delete=0 : If set, the exchange is deleted when all queues have finished using it}
+                            {--rest=0 : Number of seconds to rest between jobs}
 
                             {--consumer-tag}
                             {--prefetch-size=0}
@@ -41,7 +43,7 @@ class EventListenCommand extends ConsumeCommand
     /**
      * The console command description.
      *
-     * @var string
+     * @var string|null
      */
     protected $description = 'Listen to (rabbit) events with this command';
 
