@@ -7,6 +7,7 @@ use VladimirYuldashev\LaravelQueueRabbitMQ\Console\ConsumeCommand;
 
 class EventListenCommand extends ConsumeCommand
 {
+    /** @var string */
     protected $signature = 'event:listen
                             {event? : Event name, e.g. user.# -> listen to all events starting with user.}
                             {connection=rabbitmq : The name of the queue connection to work}
