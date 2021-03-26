@@ -32,6 +32,7 @@ class EventListenCommand extends ConsumeCommand
                             {--exchange_passive=0 : If set, the server will reply with Declare-Ok if the exchange already exists with the same name, and raise an error if not}
                             {--exchange_durable=1 : If set when creating a new exchange, the exchange will be marked as durable}
                             {--exchange_auto_delete=0 : If set, the exchange is deleted when all queues have finished using it}
+                            {--rest=0 : Number of seconds to rest between jobs}
 
                             {--consumer-tag}
                             {--prefetch-size=0}
