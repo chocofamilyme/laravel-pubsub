@@ -43,7 +43,7 @@ class EventListenCommand extends ConsumeCommand
     /**
      * The console command description.
      *
-     * @var string
+     * @var string|null
      */
     protected $description = 'Listen to (rabbit) events with this command';
 
