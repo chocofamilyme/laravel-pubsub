@@ -54,7 +54,6 @@ class Listener extends Consumer
         }
 
         $lastRestart = $this->getTimestampOfLastQueueRestart();
-        $this->gotJob  = !$this->waitNonBlocking;
 
         /** @var RabbitMQQueue $connection */
         $connection = $this->manager->connection($connectionName);
@@ -100,9 +99,7 @@ class Listener extends Consumer
             $this->consumerExclusive,
             false,
             function (AMQPMessage $message) use ($connection, $options, $connectionName, $queue): void {
-                $this->gotJob = true;
-
-                $listener = RabbitMQFactory::make(
+                $job = RabbitMQFactory::make(
                     $this->job,
                     $this->container,
                     $connection,
@@ -111,7 +108,17 @@ class Listener extends Consumer
                     $queue
                 );
 
-                $this->runJob($listener, $connectionName, $options);
+                $this->currentJob = $job;
+
+                if ($this->supportsAsyncSignals()) {
+                    $this->registerTimeoutHandler($job, $options);
+                }
+
+                $this->runJob($job, $connectionName, $options);
+
+                if ($this->supportsAsyncSignals()) {
+                    $this->resetTimeoutHandler();
+                }
             }
         );
 
@@ -149,7 +156,7 @@ class Listener extends Consumer
             }
 
             // If no job is got off the queue, we will need to sleep the worker.
-            if (!$this->gotJob) {
+            if ($this->currentJob === null) {
                 $this->sleep($options->sleep);
             }
 
@@ -159,7 +166,7 @@ class Listener extends Consumer
             /** @psalm-suppress PossiblyNullArgument */
             $this->stopIfNecessary($options, $lastRestart);
 
-            $this->gotJob = false;
+            $this->currentJob = null;
         }
     }
 
