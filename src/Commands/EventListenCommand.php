@@ -13,6 +13,7 @@ class EventListenCommand extends ConsumeCommand
                             {connection=rabbitmq : The name of the queue connection to work}
                             {--name=default : The name of the consumer}
                             {--queue= : The names of the queues to work}
+                            {--message-ttl= : Message lifetime in queue}
                             {--exchange= : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]}
                             {--exchange_type=topic : Optional, specifies exchange which should be listened [for default value see app/config/queue.php]}
                             {--once : Only process the next job on the queue}
@@ -58,6 +59,8 @@ class EventListenCommand extends ConsumeCommand
         $exchange  = $this->option('exchange') ?? '';
         /** @var string $queueName */
         $queueName = $this->option('queue') ?? config('queue.connections.rabbitmq.queue');
+        /** @var int $messageTtl */
+        $messageTtl  = $this->option('message-ttl') ? (int) $this->option('message-ttl') : config('queue.connections.rabbitmq.options.message-ttl', 0);
 
         $this->info("Start listening event $eventName on exchange $exchange, queue name is $queueName");
 
@@ -78,7 +81,7 @@ class EventListenCommand extends ConsumeCommand
         $listener->setExclusive((bool)$this->option('exclusive'));
         $listener->setConsumerExclusive((bool)$this->option('consumer_exclusive'));
         $listener->setJob($job);
-        $listener->setMessageTtl(config('queue.connections.rabbitmq.options.message-ttl', 0));
+        $listener->setMessageTtl($messageTtl);
         $listener->setWaitNonBlocking((bool) $this->option('wait_non_blocking'));
 
         $listener->setExchangePassive((bool) $this->option('exchange_passive'));
