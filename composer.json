@@ -18,7 +18,7 @@
   "require": {
     "php": "^7.4|^8.0",
     "ext-json": "*",
-    "vladimir-yuldashev/laravel-queue-rabbitmq": "^12.0.1"
+    "vladimir-yuldashev/laravel-queue-rabbitmq": "11.2.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.3",
