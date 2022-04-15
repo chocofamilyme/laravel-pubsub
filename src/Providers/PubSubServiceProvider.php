@@ -130,7 +130,7 @@ class PubSubServiceProvider extends ServiceProvider
     {
         $timestamp = date('Y_m_d_His');
 
-        return Collection::make($this->app->databasePath() . DIRECTORY_SEPARATOR . 'migrations' . DIRECTORY_SEPARATOR)
+        return (string) Collection::make($this->app->databasePath() . DIRECTORY_SEPARATOR . 'migrations' . DIRECTORY_SEPARATOR)
             ->flatMap(
                 function ($path) use ($fileNameSuffix) {
                     return glob($path . '*' . $fileNameSuffix);

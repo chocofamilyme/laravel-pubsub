@@ -8,7 +8,6 @@ use Chocofamilyme\LaravelPubSub\Events\PublishEvent;
 
 class TestInvalidEvent extends PublishEvent
 {
-
     public function toPayload(): array
     {
         return [

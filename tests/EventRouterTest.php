@@ -12,7 +12,6 @@ use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
  */
 class EventRouterTest extends TestCase
 {
-
     public function setUp(): void
     {
         parent::setUp();
