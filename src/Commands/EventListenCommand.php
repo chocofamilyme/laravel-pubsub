@@ -39,6 +39,7 @@ class EventListenCommand extends ConsumeCommand
                             {--consumer-tag}
                             {--prefetch-size=0}
                             {--prefetch-count=1}
+                            {--max-priority=1}
                            ';
 
     /**

@@ -267,3 +267,27 @@ class UserUpdatedEvent extends PublishEvent
   ],
 ...
 ```
+
+
+
+
+
+#### To save failed jobs, you need to make the following changes config in queue.php and set uuid column nullable in failed_jobs table
+```php
+...
+      'failed' => [
+        'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
+        'database' => env('DB_CONNECTION', 'mysql'),
+        'table' => 'failed_jobs',
+    ],
+...
+```
+```php
+...
+      'failed' => [
+//        'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
+        'database' => env('DB_CONNECTION', 'mysql'),
+        'table' => 'failed_jobs',
+    ],
+...
+```
