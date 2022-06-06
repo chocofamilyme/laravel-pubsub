@@ -85,6 +85,8 @@ class RabbitMQExternal extends RabbitMQLaravel
             );
         }
 
+        $payload['application_headers'] = $this->getRabbitMQMessageHeaders();
+
         $listeners = $this->eventRouter->getListeners($this->getName());
         foreach ($listeners as $listener) {
             $this->instance->call($this, $listener, $payload);
