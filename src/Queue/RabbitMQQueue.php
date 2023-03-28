@@ -6,6 +6,7 @@ namespace Chocofamilyme\LaravelPubSub\Queue;
 
 use Chocofamilyme\LaravelPubSub\Message\OutputMessage;
 use Exception;
+use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue as Queue;
 use Illuminate\Support\Arr;
@@ -13,6 +14,16 @@ use PhpAmqpLib\Wire\AMQPTable;
 
 class RabbitMQQueue extends Queue
 {
+    /**
+     * @param AbstractConnection $connection
+     * @param string $default
+     * @param array $options
+     */
+    public function __construct(AbstractConnection $connection, string $default, array $options = [])
+    {
+        parent::__construct($connection, $default, false, $options);
+    }
+
     /**
      * {@inheritdoc}
      * @throws Exception
