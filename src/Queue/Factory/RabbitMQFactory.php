@@ -11,6 +11,7 @@ use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQLaravel;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Queue\Job as JobContract;
 use InvalidArgumentException;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -47,7 +48,8 @@ class RabbitMQFactory
                 new EventRouter(),
                 new CallQueuedHandler(
                     $container->make(Dispatcher::class),
-                    $container
+                    $container,
+                    $container->app->make(ExceptionHandler::class),
                 )
             );
         }
