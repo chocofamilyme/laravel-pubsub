@@ -7,6 +7,7 @@ namespace Chocofamilyme\LaravelPubSub\Queue;
 use Exception;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Queue\InteractsWithQueue;
@@ -32,17 +33,22 @@ class CallQueuedHandler
     protected Container $container;
 
     /**
+     * @var ExceptionHandler
+     */
+    protected ExceptionHandler $exceptionHandler;
+
+    /**
      * Create a new handler instance.
      *
      * @param Dispatcher $dispatcher
-     * @param Container  $container
-     *
-     * @return void
+     * @param Container $container
+     * @param ExceptionHandler $exceptionHandler
      */
-    public function __construct(Dispatcher $dispatcher, Container $container)
+    public function __construct(Dispatcher $dispatcher, Container $container, ExceptionHandler $exceptionHandler)
     {
         $this->container  = $container;
         $this->dispatcher = $dispatcher;
+        $this->exceptionHandler = $exceptionHandler;
     }
 
     public function call(Job $job, string $listener, array $data): void
@@ -58,6 +64,8 @@ class CallQueuedHandler
         try {
             $this->dispatchThroughMiddleware($job, $listener, $data);
         } catch (Throwable $e) {
+            $this->exceptionHandler->report($e);
+
             if (method_exists($listener, 'failed')) {
                 $listener->failed($data, $e);
             }
