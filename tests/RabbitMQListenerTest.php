@@ -10,6 +10,7 @@ use Chocofamilyme\LaravelPubSub\Listeners\EventRouter;
 use Chocofamilyme\LaravelPubSub\Queue\CallQueuedHandler;
 use Chocofamilyme\LaravelPubSub\Queue\Jobs\RabbitMQExternal;
 use Illuminate\Contracts\Bus\Dispatcher;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Str;
 use PhpAmqpLib\Message\AMQPMessage;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Queue\RabbitMQQueue;
@@ -62,7 +63,8 @@ class RabbitMQListenerTest extends TestCase
             new EventRouter(),
             new CallQueuedHandler(
                 $this->app->make(Dispatcher::class),
-                $this->app
+                $this->app,
+                $this->app->make(ExceptionHandler::class),
             )
         );
 
@@ -87,7 +89,8 @@ class RabbitMQListenerTest extends TestCase
             new EventRouter(),
             new CallQueuedHandler(
                 $this->app->make(Dispatcher::class),
-                $this->app
+                $this->app,
+                $this->app->make(ExceptionHandler::class),
             )
         );
 
@@ -119,7 +122,8 @@ class RabbitMQListenerTest extends TestCase
             new EventRouter(),
             new CallQueuedHandler(
                 $this->app->make(Dispatcher::class),
-                $this->app
+                $this->app,
+                $this->app->make(ExceptionHandler::class),
             )
         );
 
