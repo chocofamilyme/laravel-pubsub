@@ -54,7 +54,7 @@ class RabbitMQQueue extends Queue
             Arr::get($options, 'headers', [])
         );
 
-        $this->channel->basic_publish($message, $exchange, $queue, true, false);
+        $this->getChannel()->basic_publish($message, $exchange, $queue, true, false);
 
         return $correlationId;
     }
@@ -94,7 +94,7 @@ class RabbitMQQueue extends Queue
             return;
         }
 
-        $this->channel->queue_declare(
+        $this->getChannel()->queue_declare(
             $name,
             false,
             $durable,
