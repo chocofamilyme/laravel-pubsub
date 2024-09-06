@@ -44,6 +44,10 @@ class CallQueuedHandler
         $this->dispatcher = $dispatcher;
     }
 
+    /**
+     * @throws BindingResolutionException
+     * @throws Throwable
+     */
     public function call(Job $job, string $listener, array $data): void
     {
         try {
@@ -57,9 +61,11 @@ class CallQueuedHandler
         try {
             $this->dispatchThroughMiddleware($job, $listener, $data);
         } catch (Throwable $e) {
-            if (method_exists($listener, 'failed')) {
-                $listener->failed($data, $e);
+            if (!method_exists($listener, 'failed')) {
+                throw $e;
             }
+
+            $listener->failed($data, $e);
         }
 
         if (!$job->hasFailed() && !$job->isReleased()) {
