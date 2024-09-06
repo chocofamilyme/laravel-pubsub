@@ -33,22 +33,15 @@ class CallQueuedHandler
     protected Container $container;
 
     /**
-     * @var ExceptionHandler
-     */
-    protected ExceptionHandler $exceptionHandler;
-
-    /**
      * Create a new handler instance.
      *
      * @param Dispatcher $dispatcher
      * @param Container $container
-     * @param ExceptionHandler $exceptionHandler
      */
-    public function __construct(Dispatcher $dispatcher, Container $container, ExceptionHandler $exceptionHandler)
+    public function __construct(Dispatcher $dispatcher, Container $container)
     {
         $this->container  = $container;
         $this->dispatcher = $dispatcher;
-        $this->exceptionHandler = $exceptionHandler;
     }
 
     public function call(Job $job, string $listener, array $data): void
@@ -64,12 +57,9 @@ class CallQueuedHandler
         try {
             $this->dispatchThroughMiddleware($job, $listener, $data);
         } catch (Throwable $e) {
-            $this->exceptionHandler->report($e);
-
             if (method_exists($listener, 'failed')) {
                 $listener->failed($data, $e);
             }
-            $job->fail($e);
         }
 
         if (!$job->hasFailed() && !$job->isReleased()) {

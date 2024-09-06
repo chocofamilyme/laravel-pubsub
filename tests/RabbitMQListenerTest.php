@@ -63,8 +63,7 @@ class RabbitMQListenerTest extends TestCase
             new EventRouter(),
             new CallQueuedHandler(
                 $this->app->make(Dispatcher::class),
-                $this->app,
-                $this->app->make(ExceptionHandler::class),
+                $this->app
             )
         );
 
@@ -89,8 +88,7 @@ class RabbitMQListenerTest extends TestCase
             new EventRouter(),
             new CallQueuedHandler(
                 $this->app->make(Dispatcher::class),
-                $this->app,
-                $this->app->make(ExceptionHandler::class),
+                $this->app
             )
         );
 
@@ -122,8 +120,7 @@ class RabbitMQListenerTest extends TestCase
             new EventRouter(),
             new CallQueuedHandler(
                 $this->app->make(Dispatcher::class),
-                $this->app,
-                $this->app->make(ExceptionHandler::class),
+                $this->app
             )
         );
 

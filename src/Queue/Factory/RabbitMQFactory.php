@@ -48,8 +48,7 @@ class RabbitMQFactory
                 new EventRouter(),
                 new CallQueuedHandler(
                     $container->make(Dispatcher::class),
-                    $container,
-                    $container->app->make(ExceptionHandler::class),
+                    $container
                 )
             );
         }
