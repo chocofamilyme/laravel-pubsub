@@ -42,18 +42,20 @@ class Listener extends Consumer
      * @param string        $queue
      * @param WorkerOptions $options
      *
-     * @return void
+     * @return int
      *
      * @psalm-suppress ImplementedReturnTypeMismatch
      * @throws Throwable
      */
-    public function daemon($connectionName, $queue, WorkerOptions $options): void
+    public function daemon($connectionName, $queue, WorkerOptions $options)
     {
         if ($this->supportsAsyncSignals()) {
             $this->listenForSignals();
         }
 
         $lastRestart = $this->getTimestampOfLastQueueRestart();
+
+        [$startTime, $jobsProcessed] = [hrtime(true) / 1e9, 0];
 
         /** @var RabbitMQQueue $connection */
         $connection = $this->manager->connection($connectionName);
@@ -163,35 +165,19 @@ class Listener extends Consumer
             // Finally, we will check to see if we have exceeded our memory limits or if
             // the queue should restart based on other indications. If so, we'll stop
             // this worker and let whatever is "monitoring" it restart the process.
-            /** @psalm-suppress PossiblyNullArgument */
-            $this->stopIfNecessary($options, $lastRestart);
+            $status = $this->stopIfNecessary(
+                $options,
+                $lastRestart,
+                $startTime,
+                $jobsProcessed,
+                $this->currentJob
+            );
+
+            if (! is_null($status)) {
+                return $this->stop($status, $options);
+            }
 
             $this->currentJob = null;
-        }
-    }
-
-    /**
-     * Stop the process if necessary.
-     *
-     * @param \Illuminate\Queue\WorkerOptions $options
-     * @param int                             $lastRestart
-     * @param int                             $startTime
-     * @param int                             $jobsProcessed
-     * @param mixed                           $job
-     *
-     * @return void
-     */
-    protected function stopIfNecessary(
-        WorkerOptions $options,
-        $lastRestart,
-        $startTime = 0,
-        $jobsProcessed = 0,
-        $job = null
-    ) {
-        if ($this->shouldQuit) {
-            $this->stop();
-        } elseif ($options->stopWhenEmpty && is_null($job)) {
-            $this->stop();
         }
     }
 
