@@ -50,7 +50,7 @@ class Listener extends Consumer
         callable $resetScope = null
     ) {
         parent::__construct($manager, $events, $exceptions, $isDownForMaintenance, $resetScope);
-        $this->lostConnectionMessages = config('queue.connections.rabbitmq.lost_connection_messages', []);
+        $this->lostConnectionMessages = config('queue.connections.rabbitmq.options.lost_connection_messages', []);
     }
 
     /**
