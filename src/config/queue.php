@@ -51,6 +51,7 @@ return [
                     'declare' => false,
                     'bind'    => false,
                 ],
+                'lost_connection_messages' => []
             ],
         ],
     ],

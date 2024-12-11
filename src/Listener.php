@@ -6,7 +6,11 @@ namespace Chocofamilyme\LaravelPubSub;
 
 use ErrorException;
 use Exception;
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Queue\Factory as QueueManager;
 use Illuminate\Queue\WorkerOptions;
+use Illuminate\Support\Str;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
 use PhpAmqpLib\Message\AMQPMessage;
 use Throwable;
@@ -36,6 +40,18 @@ class Listener extends Consumer
     private bool $exchangePassive = false;
     private bool $exchangeDurable = true;
     private bool $exchangeAutoDelete = false;
+    protected array $lostConnectionMessages = [];
+
+    public function __construct(
+        QueueManager $manager,
+        Dispatcher $events,
+        ExceptionHandler $exceptions,
+        callable $isDownForMaintenance,
+        callable $resetScope = null
+    ) {
+        parent::__construct($manager, $events, $exceptions, $isDownForMaintenance, $resetScope);
+        $this->lostConnectionMessages = config('queue.connections.rabbitmq.options.lost_connection_messages', []);
+    }
 
     /**
      * @param string        $connectionName
@@ -323,5 +339,20 @@ class Listener extends Consumer
     public function setExchangeAutoDelete(bool $exchangeAutoDelete): void
     {
         $this->exchangeAutoDelete = $exchangeAutoDelete;
+    }
+
+    /**
+     * @param Throwable $e
+     * @return bool
+     */
+    protected function causedByLostConnection(Throwable $e)
+    {
+        $message = $e->getMessage();
+
+        if (Str::contains($message, $this->lostConnectionMessages)) {
+            return true;
+        }
+
+        return parent::causedByLostConnection($e);
     }
 }
